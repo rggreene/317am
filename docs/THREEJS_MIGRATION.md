@@ -36,7 +36,7 @@ Run `npm run check` for JavaScript syntax checks. Production build output is `di
 ## Milestone 3: skinned intruder and animation state machine
 
 - Imported `assets/models/intruder_rig.glb`: a procedurally authored **skinned** glTF 2.0 character (12 joints, six PBR materials).
-- Four embedded rig animations: `idle`, `walk`, `attack`, `stagger`. Press **1–4** to preview them.
+- Four embedded rig animations: `idle`, `walk`, `attack`, `stagger`. Press **1–4** to preview them. Press **R** for an intruder close-up, **R** again to return.
 - `IntruderController` blends animations with `THREE.AnimationMixer`; attack and stagger return to idle when finished.
 - The original procedural figure remains as a fallback when the GLB fails.
 - Rebuild: `npm run assets:intruder`. Validate: `npm run check:intruder`.

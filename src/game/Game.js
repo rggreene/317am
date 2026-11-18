@@ -24,6 +24,8 @@ export class Game {
     this.panGroup=null;
     this.panAsset=null;
     this.panInspect=false;
+    this.intruderInspect=false;
+    this.intruderSavedCamera=null;
     this.cameraAnimation=null;
     void this.setupPan();
     this.ambient=new THREE.HemisphereLight('#8eaecf','#1d1818',0.65);
@@ -59,11 +61,12 @@ export class Game {
       if(e.repeat || e.ctrlKey || e.metaKey || e.altKey)return;
       switch(e.code){
         case 'KeyE':this.togglePanInspection();break;
+        case 'KeyR':this.toggleIntruderInspection();break;
         case 'Digit1':
         case 'Digit2':
         case 'Digit3':
         case 'Digit4':this.riggedIntruder?.setClip(INTRUDER_CLIPS[Number(e.code.slice(-1))-1]);break;
-        case 'Escape':if(this.panInspect)this.togglePanInspection();break;
+        case 'Escape':if(this.panInspect)this.togglePanInspection();else if(this.intruderInspect)this.toggleIntruderInspection();break;
         case 'KeyG':this.moody=!this.moody;this.configureLighting();break;
         case 'KeyF':this.flashlightOn=!this.flashlightOn;this.flashlight.visible=this.flashlightOn;break;
         case 'KeyH':this.rootElement.classList.toggle('hide-ui');break;
@@ -116,7 +119,7 @@ export class Game {
     }
   }
   togglePanInspection(){
-    if(!this.panGroup)return;
+    if(!this.panGroup||this.intruderInspect)return;
     this.panInspect=!this.panInspect;
     const {camera,controls}=this.view;
     if(this.panInspect){
@@ -132,6 +135,23 @@ export class Game {
     controls.enabled=false;
     const mode=document.querySelector('#inspect-mode');
     if(mode)mode.textContent=this.panInspect?'INSPECTING FRYING PAN · E TO RETURN':'APARTMENT OVERVIEW · E TO INSPECT PAN';
+  }
+  toggleIntruderInspection(){
+    if(!this.riggedIntruder||this.panInspect)return;
+    const {camera,controls}=this.view;
+    this.intruderInspect=!this.intruderInspect;
+    if(this.intruderInspect){
+      this.intruderSavedCamera={pos:camera.position.clone(),target:controls.target.clone()};
+      this.cameraAnimation={
+        pos:new THREE.Vector3(1.22,2.10,1.78),
+        target:new THREE.Vector3(.28,1.45,-.38)
+      };
+    }else if(this.intruderSavedCamera){
+      this.cameraAnimation={pos:this.intruderSavedCamera.pos,target:this.intruderSavedCamera.target};
+    }
+    controls.enabled=false;
+    const label=document.querySelector('#inspect-mode');
+    if(label)label.textContent=this.intruderInspect?'INSPECTING INTRUDER · R TO RETURN':'APARTMENT OVERVIEW · E PAN · R INTRUDER';
   }
   configureLighting(){
     this.ambient.intensity=this.moody?0.65:1.65;
