@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createRenderer } from '../rendering/createRenderer.js';
 import { buildRoom } from '../world/buildRoom.js';
 import { loadFryingPan } from '../props/loadFryingPan.js';
+import {createRiggedIntruder,INTRUDER_CLIPS} from '../actors/IntruderController.js';
 
 export class Game {
   constructor({canvas,root}){
@@ -16,7 +17,10 @@ export class Game {
     const {scene,camera}=this.view;
     const world=buildRoom();
     this.intruder=world.intruder;
+    this.apartment=world.root;
+    this.riggedIntruder=null;
     scene.add(world.root);
+    void this.setupIntruder();
     this.panGroup=null;
     this.panAsset=null;
     this.panInspect=false;
@@ -55,6 +59,10 @@ export class Game {
       if(e.repeat || e.ctrlKey || e.metaKey || e.altKey)return;
       switch(e.code){
         case 'KeyE':this.togglePanInspection();break;
+        case 'Digit1':
+        case 'Digit2':
+        case 'Digit3':
+        case 'Digit4':this.riggedIntruder?.setClip(INTRUDER_CLIPS[Number(e.code.slice(-1))-1]);break;
         case 'Escape':if(this.panInspect)this.togglePanInspection();break;
         case 'KeyG':this.moody=!this.moody;this.configureLighting();break;
         case 'KeyF':this.flashlightOn=!this.flashlightOn;this.flashlight.visible=this.flashlightOn;break;
@@ -64,6 +72,24 @@ export class Game {
     };
     window.addEventListener('keydown',this.handleKeyDown);
     this.lastFrame=performance.now();
+  }
+  async setupIntruder(){
+    try{
+      const controller=await createRiggedIntruder();
+      this.apartment.add(controller.group);
+      this.apartment.remove(this.intruder.group);
+      this.riggedIntruder=controller;
+      controller.onChanged=clip=>{
+        const label=document.querySelector('#clip-status');
+        if(label)label.textContent='INTRUDER: '+clip.toUpperCase();
+      };
+      const status=document.querySelector('#intruder-status');
+      if(status)status.textContent='12-bone animated GLB loaded';
+    }catch(error){
+      console.error('Intruder GLB failed. Keeping fallback:',error);
+      const status=document.querySelector('#intruder-status');
+      if(status)status.textContent='Rig unavailable: showing fallback intruder';
+    }
   }
   async setupPan(){
     try{
@@ -119,7 +145,8 @@ export class Game {
     const delta=Math.min(0.05,(now-this.lastFrame)/1000||0);
     this.lastFrame=now;
     this.elapsed+=delta;
-    this.intruder.animate(this.elapsed);
+    if(this.riggedIntruder)this.riggedIntruder.update(delta);
+    else this.intruder.animate(this.elapsed);
     if(this.panGroup){
       const wantedHeight=this.panInspect?1.22:0.968;
       this.panGroup.position.y+=(wantedHeight-this.panGroup.position.y)*Math.min(1,delta*7);

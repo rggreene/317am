@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-// Optional authored asset pipeline. No external GLB assets ship with this starter.
+// Shared loader for the committed frying pan and rigged intruder GLB assets.
 // A returned mixer can play clips named in Blender (idle, walk, attack, stagger).
 const loader=new GLTFLoader();
 export async function loadGLB(path){
