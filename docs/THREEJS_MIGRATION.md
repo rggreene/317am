@@ -24,6 +24,15 @@ Run `npm run check` for JavaScript syntax checks. Production build output is `di
 - Placeholder humanoid with basic procedural motion.
 - GLTFLoader / AnimationMixer integration helpers prepared for Blender .glb assets.
 
+## Milestone 2: first GLB asset
+
+- The frying pan is now a real external glTF 2.0 binary: `assets/models/frying_pan.glb`.
+- The first model is **procedurally authored**, not a finished Blender art asset. Its source lives in `scripts/generate-pan.mjs`. Replace the GLB with Blender-authored art when ready.
+- `src/props/loadFryingPan.js` imports the GLB as a Vite asset URL so production builds include it.
+- In the visual sandbox press **E** to inspect the pan, **Escape** to return; orbit with mouse to evaluate material response.
+- `npm run check:assets` verifies the GLB structure without any dependencies.
+- Real skeletal animation import is still a separate milestone; the intruder is animated procedurally.
+
 ## Not yet implemented
 
 - The old first-person controller, combat, scavenging, enemy AI, phone, barricade, first aid, or win/loss state.

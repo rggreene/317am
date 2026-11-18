@@ -18,5 +18,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Check module syntax
         run: npm run check
+      - name: Validate committed GLB asset
+        run: npm run check:assets
       - name: Build static site
         run: npm run build
