@@ -1,0 +1,40 @@
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node and future Vite builds
+node_modules/
+dist/
+coverage/
+.vite/
+.cache/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Blender temporary/backup files (keep real .blend sources tracked)
+*.blend1
+*.blend2
+*.blend@
+*.blend~
+*.blend.lock
+
+# Python and generated scratch files
+__pycache__/
+*.py[cod]
+*.tmp
+*.temp
+
+# Local test captures
+playwright-report/
+test-results/
