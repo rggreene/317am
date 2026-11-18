@@ -3,6 +3,7 @@ import { createRenderer } from '../rendering/createRenderer.js';
 import { buildRoom } from '../world/buildRoom.js';
 import { loadFryingPan } from '../props/loadFryingPan.js';
 import {createRiggedIntruder,INTRUDER_CLIPS} from '../actors/IntruderController.js';
+import {CombatLab} from './CombatLab.js';
 
 export class Game {
   constructor({canvas,root}){
@@ -57,11 +58,27 @@ export class Game {
     scene.add(this.panLight);
     this.tmpDirection=new THREE.Vector3();
     this.configureLighting();
+    this.combat=new CombatLab({
+      view:this.view,
+      canvas,
+      root,
+      onEnter:()=>{
+        // Cancel any in-flight orbit inspection when the user takes control.
+        this.cameraAnimation=null;
+        this.panInspect=false;
+        this.intruderInspect=false;
+        const label=document.querySelector('#inspect-mode');
+        if(label)label.textContent='APARTMENT OVERVIEW · E PAN · R INTRUDER';
+      },
+      onHit:()=>{
+        if(this.riggedIntruder)this.riggedIntruder.setClip('stagger');
+      }
+    });
     this.handleKeyDown=(e)=>{
       if(e.repeat || e.ctrlKey || e.metaKey || e.altKey)return;
       switch(e.code){
-        case 'KeyE':this.togglePanInspection();break;
-        case 'KeyR':this.toggleIntruderInspection();break;
+        case 'KeyE':if(!this.combat.active)this.togglePanInspection();break;
+        case 'KeyR':if(!this.combat.active)this.toggleIntruderInspection();break;
         case 'Digit1':
         case 'Digit2':
         case 'Digit3':
@@ -176,7 +193,8 @@ export class Game {
       this.panAsset?.mixer?.update(delta);
     }
     const {camera,controls,renderer,scene}=this.view;
-    if(this.cameraAnimation){
+    if(this.combat.active)this.combat.update(delta);
+    if(!this.combat.active && this.cameraAnimation){
       camera.position.lerp(this.cameraAnimation.pos,Math.min(1,delta*6));
       controls.target.lerp(this.cameraAnimation.target,Math.min(1,delta*6));
       if(camera.position.distanceTo(this.cameraAnimation.pos)<0.02 && controls.target.distanceTo(this.cameraAnimation.target)<0.02){
@@ -186,7 +204,7 @@ export class Game {
         controls.enabled=true;
       }
     }
-    controls.update();
+    if(!this.combat.active)controls.update();
     this.flashlight.position.copy(camera.position);
     camera.getWorldDirection(this.tmpDirection);
     this.flashlight.target.position.copy(camera.position).addScaledVector(this.tmpDirection,5);
