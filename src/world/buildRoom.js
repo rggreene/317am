@@ -38,7 +38,11 @@ function lamp(parent,x,z){
   parent.add(shade);
 }
 function glass(parent,x,width){
-  box(parent,[width+0.18,1.55,0.12],trim,[x,1.72,-2.58],false);
+  // Frame the actual wall opening rather than filling it with an opaque box.
+  box(parent,[width+0.18,0.08,0.14],trim,[x,2.48,-2.58],false);
+  box(parent,[width+0.18,0.08,0.14],trim,[x,0.96,-2.58],false);
+  box(parent,[0.08,1.50,0.14],trim,[x-(width+0.18)/2,1.72,-2.58],false);
+  box(parent,[0.08,1.50,0.14],trim,[x+(width+0.18)/2,1.72,-2.58],false);
   const blue=new THREE.Mesh(new THREE.PlaneGeometry(width,1.38),new THREE.MeshBasicMaterial({color:'#6d99b5',transparent:true,opacity:0.31,depthWrite:false,side:THREE.DoubleSide}));
   blue.position.set(x,1.72,-2.48);
   parent.add(blue);
