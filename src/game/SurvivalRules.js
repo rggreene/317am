@@ -40,7 +40,7 @@ export function nightEvent(state,type){
 }
 export function tickNight(state,dt){
   if(state.phase!=='playing')return state;
-  const step=Math.min(Math.max(dt,0),.05);
+  const step=Math.min(Math.max(dt,0),.5);
   state.elapsed+=step;state.remaining=Math.max(0,NIGHT_LENGTH-state.elapsed);
   state.damageCooldown=Math.max(0,state.damageCooldown-step);
   state.enemyStun=Math.max(0,state.enemyStun-step);

@@ -32,7 +32,9 @@ try{
   assert.equal(await page.locator('#night-end').isVisible(),false,'win/loss modal showed at game start');
   const start=await page.locator('#night-clock').innerText();
   assert.match(start,/^0[01]:[0-5][0-9]$/,'timer incorrectly formatted');
-  await page.waitForTimeout(1250);
+  await page.waitForFunction(first=>
+    document.querySelector('#night-clock')?.textContent!==first,
+    start,{timeout:9500});
   const next=await page.locator('#night-clock').innerText();
   if(next===start){
     const diagnostic=await page.evaluate(()=>({

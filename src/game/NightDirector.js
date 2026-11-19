@@ -182,7 +182,7 @@ export class NightDirector{
       this.game.combat.setFeedback(this.state.message);
     }
     if(this.state.phase==='playing'){
-      this.enemyTick(dt);
+      this.enemyTick(Math.min(dt,.05));
       this.audio.heartbeat(this.state.elapsed,this.state.health);
     }
     const combat=this.game.combat;

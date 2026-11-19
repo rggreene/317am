@@ -79,3 +79,7 @@ kbd{display:inline-flex;justify-content:center;min-width:19px;padding:3px 6px;ma
 #night-restart{margin-top:19px;border:1px solid #c59a6b;padding:13px 21px;border-radius:3px;color:#f5debf;font-weight:800;letter-spacing:.08em;background:#3c3027;cursor:pointer}
 #night-restart:hover{background:#66503a}
 @media(max-width:750px){#night-hud{top:126px;left:16px;width:270px;padding:11px}#night-message{display:none}#night-objective{font-size:10px}#interaction-hint{font-size:9px}.night-topline{font-size:19px}}
+
+/* Separate status messages in the orbit inspection panel. */
+.note > span{display:block}
+#asset-status,#inspect-mode{display:block;margin-top:4px}

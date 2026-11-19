@@ -21,6 +21,10 @@ export class Game {
     const world=buildRoom();
     this.intruder=world.intruder;
     this.apartment=world.root;
+    // Right exterior wall is rendered in first person but hidden in orbit
+    // so furniture, window framing and the hallway remain inspectable.
+    this.cutawayWall=world.root.getObjectByName('Living outer wall');
+    if(this.cutawayWall)this.cutawayWall.visible=false;
     this.riggedIntruder=null;
     scene.add(world.root);
     void this.setupIntruder();
@@ -83,6 +87,7 @@ export class Game {
         this.intruderInspect=false;
         const label=document.querySelector('#inspect-mode');
         if(label)label.textContent='APARTMENT OVERVIEW · E PAN · R INTRUDER';
+        if(this.cutawayWall)this.cutawayWall.visible=true;
         this.night?.enter();
       },
       getTarget:()=>this.riggedIntruder?.getTarget() ?? new THREE.Vector3(.28,1.43,-.38),
@@ -94,7 +99,10 @@ export class Game {
       }
     });
     this.night=new NightDirector(this);
-    root.addEventListener('night-pause',()=>this.night.pause());
+    root.addEventListener('night-pause',()=>{
+      this.night.pause();
+      if(this.cutawayWall)this.cutawayWall.visible=false;
+    });
     document.querySelector('#night-restart')?.addEventListener('click',()=>this.night.restart());
     this.handleKeyDown=(e)=>{
       if(e.repeat || e.ctrlKey || e.metaKey || e.altKey)return;
@@ -236,7 +244,11 @@ export class Game {
     this.setBreakerPower(this.night?.state.breakerOn??true);
   }
   frame=(now)=>{
-    const delta=Math.min(0.05,(now-this.lastFrame)/1000||0);
+    // Rendering may be slow in software WebGL. Gameplay physics uses a small
+    // stable step, while the survival clock follows elapsed wall time.
+    const rawDelta=Math.max(0,(now-this.lastFrame)/1000||0);
+    const realDelta=Math.min(.5,rawDelta);
+    const delta=Math.min(.05,realDelta);
     this.lastFrame=now;
     this.elapsed+=delta;
     if(this.riggedIntruder)this.riggedIntruder.update(delta);
@@ -252,7 +264,7 @@ export class Game {
     const {camera,controls,renderer,scene}=this.view;
     if(this.combat.active){
       this.combat.update(delta);
-      this.night.update(delta);
+      this.night.update(realDelta);
     }
     if(!this.combat.active && this.cameraAnimation){
       camera.position.lerp(this.cameraAnimation.pos,Math.min(1,delta*6));
