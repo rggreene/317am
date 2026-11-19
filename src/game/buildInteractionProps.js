@@ -46,15 +46,32 @@ export function buildInteractionProps(scene){
   const entryGlow=new THREE.PointLight('#cf784c',0,2,2);
   entryGlow.position.set(2.90,1.65,1.95);
   wallFixtures.add(entryGlow);
+  // Unobtrusive, in-world interaction affordances appear only when
+  // an object is actually in use range and approximately in front of the player.
+  const markers=new Map();
+  const markerMat=new THREE.MeshBasicMaterial({color:'#f6c58a',toneMapped:false});
+  const markersAt=[
+    {id:'phone',parent:root,pos:[-2.71,1.28,1.46]},
+    {id:'door',parent:wallFixtures,pos:[3.018,1.44,1.97]},
+    {id:'breaker',parent:wallFixtures,pos:[3.018,1.69,.38]},
+    {id:'medkit',parent:root,pos:[-.53,1.17,-1.26]}
+  ];
+  for(const item of markersAt){
+    const glow=sphere(item.parent,.034,markerMat,item.pos);
+    glow.name='Interact Marker: '+item.id;
+    glow.visible=false;
+    markers.set(item.id,glow);
+  }
   scene.add(root);
   return {
     root,wallFixtures,items:INTERACTIONS,
-    update(state){
+    update(state,focusedId=null){
       phoneGlow.color.set(state.helpCalled?'#86d3aa':'#ffb366');
       board.visible=state.doorSecured;board2.visible=state.doorSecured;
       lever.rotation.z=state.breakerOn?0:Math.PI/2;
       indicatorMat.color.set(state.breakerOn?'#92e3a5':'#d2665a');
       entryGlow.intensity=state.enemyEntered?0:.20;
+      for(const [id,mesh] of markers)mesh.visible=id===focusedId;
     }
   };
 }

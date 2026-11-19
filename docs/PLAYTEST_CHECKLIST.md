@@ -41,3 +41,12 @@
 
 ## Feedback worth capturing
 Record **preset, approximate FPS, three specific visual problems, three gameplay-feel problems, and any console error**. Prioritize blocking issues before new features.
+
+## Encounter/interaction quality follow-up
+- [ ] Approach the intruder: a warning occurs **before** its melee swing connects
+- [ ] Back away during a windup; a properly escaped strike should miss
+- [ ] Counterattack with the pan during the windup; stagger should cancel its impending strike
+- [ ] Notice whether running or leaving the flashlight on draws pursuit
+- [ ] Stand still in shadow and watch the intruder search rather than lock directly onto you
+- [ ] Check that **E** prompts only target nearby objects you are facing; close targets should remain forgiving
+- [ ] Focus each interactable and check for its small amber in-world marker

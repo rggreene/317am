@@ -230,6 +230,8 @@ export class NightDirector{
     if(hud){
       hud.classList.toggle('night-ended',s.phase==='won'||s.phase==='lost');
       hud.classList.toggle('night-won',s.phase==='won');
+      hud.classList.toggle('danger',s.enemyEntered&&
+        (this.brain.mode==='windup'||this.brain.mode==='pursue'));
     }
     const overlay=document.querySelector('#night-end');
     if(overlay)overlay.hidden=!(this.active&&(s.phase==='won'||s.phase==='lost'));

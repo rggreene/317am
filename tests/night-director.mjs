@@ -90,4 +90,20 @@ night.restart();
 assert.equal(night.state.phase,'playing','night restarts cleanly');
 assert.equal(night.state.health,100);
 assert.equal(night.state.helpCalled,false);
+
+// Proximity must wind up before an actual hit; a pan swing can cancel it.
+night.state.enemyEntered=true;
+night.state.enemyStun=0;
+night.state.damageCooldown=0;
+night.setEnemyPosition(.35,1.70);
+camera.position.set(.05,1.64,1.70);
+night.brain=(await import('../src/game/ThreatBrain.js')).createThreatBrain();
+const before=night.state.health;
+night.enemyTick(.05);
+assert.equal(night.state.health,before,'instant-contact damage must not occur');
+assert.equal(night.brain.mode,'windup','intruder signals its incoming strike');
+night.onPlayerHit();
+for(let i=0;i<15;i++)night.enemyTick(.05);
+assert.equal(night.state.health,before,'stagger must cancel a queued strike');
+assert.equal(night.brain.mode,'staggered');
 console.log('NightDirector browserless interaction and win/restart integration checks passed');

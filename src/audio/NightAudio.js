@@ -65,6 +65,11 @@ export class NightAudio{
     const gain=enemy?Math.max(.008,.028*(1-Math.min(distance,6)/8)):.013;
     this.tone(enemy?72:98,.055,gain,enemy?44:61);
   }
+  warning(){
+    // Short low warning under the room tone, not a jump-scare sting.
+    this.tone(122,.23,.028,69);
+  }
+  miss(){this.tone(93,.19,.022,52);}
   door(){this.tone(108,.45,.11,38);}
   call(){this.tone(440,.16,.03,660);}
   click(){this.tone(160,.11,.027,118);}

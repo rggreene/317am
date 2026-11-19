@@ -86,3 +86,14 @@ kbd{display:inline-flex;justify-content:center;min-width:19px;padding:3px 6px;ma
 
 /* Preserve true hidden state for the optional FPS meter. */
 #fps[hidden]{display:none!important}
+
+/* Low-key sound/perception cues. No health bar over the enemy. */
+#threat-indicator{
+  border-top:1px solid #ffffff24;margin-top:10px;padding-top:8px;
+  font-size:9px;font-weight:750;letter-spacing:.17em;color:#9db1b8;
+}
+#night-hud.danger #threat-indicator{color:#e5a275}
+#night-hud.danger{border-left-color:#d78162}
+@media (prefers-reduced-motion:reduce) {
+  #night-hud{backdrop-filter:none}
+}

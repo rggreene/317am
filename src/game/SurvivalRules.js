@@ -68,3 +68,25 @@ export function nearestInteractable(player,items,maxRange=1.20){
   }
   return winner;
 }
+/**
+ * Contextual interaction selection shared by prompts and actual E-key action.
+ * Very close objects remain usable regardless of look angle; beyond arm's
+ * reach the player has to face the object. XZ-only is intentional because
+ * phones, doors and breaker panels sit at different heights.
+ */
+export function focusedInteractable(player,forward,items,maxRange=1.55,minFacing=.28){
+  const forwardLength=Math.hypot(forward.x,forward.z);
+  const candidates=items.filter(it=>!it.disabled).map(it=>{
+    const dx=it.x-player.x,dz=it.z-player.z;
+    const distance=Math.hypot(dx,dz);
+    const dot=distance>.001&&forwardLength>.001?
+      (dx*forward.x+dz*forward.z)/(distance*forwardLength):1;
+    return {...it,distance,dot};
+  }).filter(it=>it.distance<=maxRange&&(it.distance<=.62||it.dot>=minFacing));
+  candidates.sort((a,b)=>
+    (a.distance<=.62?-.4:a.distance-.2*a.dot)-
+    (b.distance<=.62?-.4:b.distance-.2*b.dot)
+  );
+  return candidates[0]??null;
+}
+
