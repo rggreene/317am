@@ -5,6 +5,7 @@ import {createThreatBrain,tickThreat,interruptThreat} from './ThreatBrain.js';
 import {findNavigationPath,navigateStep} from './NavGrid.js';
 import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
+import {panFromCamera} from '../audio/AudioSpatial.js';
 
 const ENTRY={x:2.73,z:2.12};
 const WALK_SPEED=.67;
@@ -222,7 +223,10 @@ export class NightDirector{
       if(Math.hypot(next.x-waypoint.x,next.z-waypoint.z)<.075)this.path.shift();
       if(this.state.elapsed-this.lastStepAt>.95){
         this.lastStepAt=this.state.elapsed;
-        this.audio.step(this.state.elapsed,true,distance);
+        const fwd=new THREE.Vector3();
+        this.game.view.camera.getWorldDirection(fwd);
+        const pan=panFromCamera(player,fwd,this.enemyPosition);
+        this.audio.step(this.state.elapsed,true,distance,pan);
       }
     }
     if(this.target){
@@ -253,6 +257,7 @@ export class NightDirector{
     if(this.state.phase==='playing'){
       this.enemyTick(Math.min(dt,.05));
       this.audio.heartbeat(this.state.elapsed,this.state.health);
+      this.audio.ambience(this.state.elapsed);
     }
 
     const keys=this.game.combat.keys;

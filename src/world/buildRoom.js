@@ -14,6 +14,7 @@ export function buildRoom(){
   root.name='Hero Apartment — living room and hallway';
   const m=makeMaterials();
   const {wallHeight}=HERO_LAYOUT.room;
+  const curtains=[];
 
   const b=(size,material,p,opts)=>box(root,size,material,p,opts);
   const r=(size,material,p,rad=.06,opts)=>rounded(root,size,material,p,rad,opts);
@@ -58,6 +59,7 @@ export function buildRoom(){
     for(const dir of [-1,1]){
       const curtain=plane(root,.20,1.67,fabricSide,[x+dir*(w/2-.10),1.72,-2.38],{vertical:true});
       curtain.rotation.y=dir*.18;
+      curtains.push({mesh:curtain,base:dir*.18,phase:curtains.length*1.7});
     }
     b([w+.20,.055,.30],m.trim,[x,.93,-2.50],{cast:false,name:'Window sill'});
   }
@@ -184,7 +186,16 @@ export function buildRoom(){
   root.add(intruder.group);
 
   // Spotlights are not authored in buildRoom; Game.js owns the runtime lights.
-  return {root,intruder,heroLayout:HERO_LAYOUT};
+  return {
+    root,intruder,heroLayout:HERO_LAYOUT,
+    updateAmbience(elapsed){
+      // Small movement only; do not swing entire curtains through the walls.
+      for(const item of curtains){
+        item.mesh.rotation.y=item.base+
+          .026*Math.sin(elapsed*.46+item.phase);
+      }
+    }
+  };
 }
 
 function lamp(root,m,x,z,y){

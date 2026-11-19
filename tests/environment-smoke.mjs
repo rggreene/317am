@@ -24,6 +24,10 @@ for(const name of ['Laminate floor plank','Coffee table top','Television','Woven
   assert.ok(names.has(name),'missing named hero asset: '+name);
 assert.ok(meshes.some(mesh=>mesh.material?.map),'expected textured surfaces');
 assert.ok(Object.keys(HERO_QUALITY).length>=5,'hero quality checklist missing');
+assert.equal(typeof world.updateAmbience,'function');
+world.updateAmbience(1.25);
+const curtainCount=meshes.filter(x=>x.material?.transparent&&x.material?.opacity===.77).length;
+assert.ok(curtainCount>=2,'expected curtain fabric in the environment');
 for(const mesh of meshes){
   assert.ok([...mesh.position].every(Number.isFinite),'invalid mesh coordinate');
 }

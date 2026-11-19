@@ -4,6 +4,7 @@ export class NightAudio{
   constructor(){
     this.ctx=null;this.ambient=null;this.ambientGain=null;this.hum=null;
     this.enabled=true;this.playing=false;this.powerOn=true;this.lastStep=-100;this.lastEnemyStep=-100;this.lastHeartbeat=-100;
+    this.lastCreak=0;this.noiseBuffer=null;
   }
   init(){
     const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -13,6 +14,7 @@ export class NightAudio{
     if(!this.ambient){
       const ctx=this.ctx,buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),values=buf.getChannelData(0);
       let last=0;for(let i=0;i<values.length;i++){last=.99*last+.01*(Math.random()*2-1);values[i]=last;}
+      this.noiseBuffer=buf;
       const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
       src.buffer=buf;src.loop=true;filter.type='lowpass';filter.frequency.value=450;
       gain.gain.value=this.enabled&&this.playing?.055:.0001;src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);src.start();
@@ -24,7 +26,7 @@ export class NightAudio{
     }
     return this.ctx;
   }
-  tone(freq,duration,volume=.035,ending=freq/2){
+  tone(freq,duration,volume=.035,ending=freq/2,pan=0){
     const ctx=this.init();if(!ctx||!this.enabled)return;
     const t=ctx.currentTime,osc=ctx.createOscillator(),g=ctx.createGain();
     osc.type='triangle';osc.frequency.setValueAtTime(freq,t);
@@ -32,7 +34,12 @@ export class NightAudio{
     g.gain.setValueAtTime(.0001,t);
     g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),t+.01);
     g.gain.exponentialRampToValueAtTime(.0001,t+duration);
-    osc.connect(g);g.connect(ctx.destination);
+    osc.connect(g);
+    if(ctx.createStereoPanner){
+      const stereo=ctx.createStereoPanner();
+      stereo.pan.value=Math.max(-.85,Math.min(.85,pan));
+      g.connect(stereo);stereo.connect(ctx.destination);
+    }else g.connect(ctx.destination);
     osc.start(t);osc.stop(t+duration+.015);
   }
   setPower(enabled){
@@ -58,12 +65,41 @@ export class NightAudio{
     this.playing=false;
     if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(.0001,this.ctx.currentTime,.15);
   }
-  step(now,enemy=false,distance=1){
+  noiseBurst(frequency,duration,volume,pan=0){
+    const ctx=this.init();
+    if(!ctx||!this.enabled||!this.playing||!this.noiseBuffer)return;
+    const t=ctx.currentTime,source=ctx.createBufferSource(),
+      filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+    source.buffer=this.noiseBuffer;
+    filter.type='bandpass';filter.frequency.value=frequency;filter.Q.value=.6;
+    gain.gain.setValueAtTime(.0001,t);
+    gain.gain.exponentialRampToValueAtTime(Math.max(volume,.0002),t+.012);
+    gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
+    source.connect(filter);filter.connect(gain);
+    if(ctx.createStereoPanner){
+      const stereo=ctx.createStereoPanner();
+      stereo.pan.value=Math.max(-.85,Math.min(.85,pan));
+      gain.connect(stereo);stereo.connect(ctx.destination);
+    }else gain.connect(ctx.destination);
+    source.start(t);source.stop(t+duration+.01);
+  }
+  ambience(now){
+    if(!this.playing||!this.enabled)return;
+    const gap=12+3*Math.abs(Math.sin(now*.23));
+    if(now-this.lastCreak<gap)return;
+    this.lastCreak=now;
+    // A gentle building-settling sound rather than a horror sting.
+    const pan=Math.sin(now*1.7)*.45;
+    this.noiseBurst(460,.22,.011,pan);
+    this.tone(142,.19,.006,100,pan);
+  }
+  step(now,enemy=false,distance=1,pan=0){
     const delay=enemy?.8:.38;
     if(now-(enemy?this.lastEnemyStep:this.lastStep||-100)<delay)return;
     if(enemy)this.lastEnemyStep=now;else this.lastStep=now;
     const gain=enemy?Math.max(.008,.028*(1-Math.min(distance,6)/8)):.013;
-    this.tone(enemy?72:98,.055,gain,enemy?44:61);
+    this.tone(enemy?72:98,.055,gain,enemy?44:61,pan);
+    this.noiseBurst(enemy?360:540,.065,enemy?gain*.58:.006,pan);
   }
   warning(){
     // Short low warning under the room tone, not a jump-scare sting.

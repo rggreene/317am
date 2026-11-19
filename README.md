@@ -87,3 +87,7 @@ The environment is more detailed than the original lab but still consists mostly
 The original project is private, but any JavaScript or GLB assets delivered through a public deployment would be visible to clients. Keep this branch private until ready to share.
 
 For migration details and milestones, see [Three.js migration notes](docs/THREEJS_MIGRATION.md).
+
+## Atmosphere pass
+
+The intruder's footsteps are stereo-positioned relative to the player, with quiet procedural room-settling sounds and subtle curtain movement. Audio is synthesized locally and begins after entering first person; press **M** to mute. These sounds are prototypes, not professionally recorded Foley assets.

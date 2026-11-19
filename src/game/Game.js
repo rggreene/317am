@@ -21,6 +21,7 @@ export class Game {
     const world=buildRoom();
     this.intruder=world.intruder;
     this.apartment=world.root;
+    this.environmentMotion=world.updateAmbience;
     // Right exterior wall is rendered in first person but hidden in orbit
     // so furniture, window framing and the hallway remain inspectable.
     this.cutawayWall=world.root.getObjectByName('Living outer wall');
@@ -254,6 +255,7 @@ export class Game {
     const delta=Math.min(.05,realDelta);
     this.lastFrame=now;
     this.elapsed+=delta;
+    this.environmentMotion?.(this.elapsed);
     if(this.riggedIntruder)this.riggedIntruder.update(delta);
     else this.intruder.animate(this.elapsed);
     if(this.panGroup){
