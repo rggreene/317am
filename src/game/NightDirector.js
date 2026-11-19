@@ -79,6 +79,7 @@ export class NightDirector{
     this.state=createNight();
     this.brain=createThreatBrain();
     this.interiorDoor=createDoorState();
+    this.doorForceTime=0;
     this.entryWarningIssued=false;
     this.endedHandled=false;
     this.lastPhase='idle';
@@ -229,13 +230,12 @@ export class NightDirector{
       this.target?.setIntent('windup',1-this.doorForceTime/1.15);
       this.setActorPose('idle');
       if(this.doorForceTime===0){
-        this.doorForceTime=1.15;
+        openDoor(this.interiorDoor,true);
         this.path=[];
         this.pathAge=0;
-        this.state.message='WOOD CREAKS. SOMETHING LEANS AGAINST THE BEDROOM DOOR.';
-        this.audio.warning();
-        this.setActorPose('idle');
-        return;
+        this.audio.door();
+        this.emitNoise(this.enemyPosition,4);
+        this.state.message='THE BEDROOM DOOR GIVES WAY.';
       }
       return;
     }
@@ -280,11 +280,13 @@ export class NightDirector{
     const doorBox=doorBlockers(this.interiorDoor)[0];
     if(doorBox&&segmentIntersectsBox(this.enemyPosition,goal,doorBox)){
       if(doorNear(this.enemyPosition,1.05)){
-        openDoor(this.interiorDoor,true);
+        this.doorForceTime=1.15;
         this.path=[];
         this.pathAge=0;
-        this.audio.door();
-        this.emitNoise(this.enemyPosition,4);
+        this.state.message='WOOD CREAKS. SOMETHING LEANS AGAINST THE BEDROOM DOOR.';
+        this.audio.warning();
+        this.setActorPose('idle');
+        return;
       }
     }
     this.setActorPose('walk');
