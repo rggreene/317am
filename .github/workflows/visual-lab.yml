@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -19,6 +21,12 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Compile Blender preflight validator (source syntax only)
         run: python3 -m py_compile scripts/blender/validate_intruder_v2.py
+      - name: Install candidate 3D generator dependencies
+        if: hashFiles('scripts/generate_intruder_v2.py') != ''
+        run: python3 -m pip install -r requirements-art.txt
+      - name: Generate Uninvited v2 character candidate
+        if: hashFiles('scripts/generate_intruder_v2.py') != ''
+        run: python3 scripts/generate_intruder_v2.py
       - name: Check module syntax and gameplay tests
         run: npm run check
       - name: Validate committed GLB assets
@@ -40,6 +48,16 @@ jobs:
             sleep 0.3
           done
           EXPECT_INTRUDER_V2=1 npm run test:browser
+      - name: Commit validated candidate GLB to alpha branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/vertical-slice-alpha'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/models/characters/char_intruder_v02.glb
+          if ! git diff --cached --quiet; then
+            git commit -m "art: generated Uninvited v2 review candidate [skip ci]"
+            git push origin HEAD:feature/vertical-slice-alpha
+          fi
       - name: Preserve visual smoke screenshots
         if: always()
         uses: actions/upload-artifact@v4

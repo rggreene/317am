@@ -31,7 +31,8 @@
     "test:contacts": "node tests/contact-shadows.mjs",
     "test:art-materials": "node tests/art-materials.mjs",
     "test:intruder-v2-contract": "node tests/intruder-v2-contract.mjs",
-    "test:attack-contact": "node tests/attack-contact.mjs"
+    "test:attack-contact": "node tests/attack-contact.mjs",
+    "assets:intruder-v2": "python3 scripts/generate_intruder_v2.py"
   },
   "dependencies": {
     "three": "0.179.1"
