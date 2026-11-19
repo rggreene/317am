@@ -107,6 +107,14 @@ export class NightAudio{
     // Short low warning under the room tone, not a jump-scare sting.
     this.tone(122,.23,.028,69);
   }
+  environmentCue(kind){
+    if(kind==='settle')this.noiseBurst(310,.29,.012,-.48);
+    else if(kind==='tap'){
+      this.tone(240,.055,.012,155,.62);
+      this.noiseBurst(600,.08,.008,.62);
+    }else if(kind==='flicker')this.tone(72,.13,.008,57);
+    // Silence is intentionally silent.
+  }
   doorListen(){
     // Small latch tick, followed by room tone: the silence does the work.
     this.tone(215,.07,.009,165);
