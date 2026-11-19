@@ -40,7 +40,7 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
     const loudness=Math.max(0,soundEvent.range??0);
     if(distance(enemy,source)<audibleRange(loudness,enemy,source,blockers)){
       brain.soundGoal=copy(source);
-      brain.soundMemory=3.5;
+      brain.soundMemory=8;
     }
   }
   if(detected){
