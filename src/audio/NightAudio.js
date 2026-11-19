@@ -4,7 +4,7 @@ export class NightAudio{
   constructor(){
     this.ctx=null;this.ambient=null;this.ambientGain=null;this.hum=null;
     this.enabled=true;this.playing=false;this.powerOn=true;this.lastStep=-100;this.lastEnemyStep=-100;this.lastHeartbeat=-100;
-    this.lastCreak=0;this.noiseBuffer=null;
+    this.lastCreak=0;this.noiseBuffer=null;this.silenced=false;
   }
   init(){
     const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -45,21 +45,21 @@ export class NightAudio{
   setPower(enabled){
     this.powerOn=enabled;
     if(this.ctx&&this.hum)this.hum.gain.setTargetAtTime(
-      this.enabled&&enabled?.006:.0001,this.ctx.currentTime,.25);
+      this.enabled&&enabled&&!this.silenced?.006:.0001,this.ctx.currentTime,.25);
   }
   setMuted(muted){
     this.enabled=!muted;
     if(!this.ctx)return;
     if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(
-      this.enabled&&this.playing?.055:.0001,this.ctx.currentTime,.12);
+      this.enabled&&this.playing?(this.silenced?.001:.055):.0001,this.ctx.currentTime,.12);
     if(this.hum)this.hum.gain.setTargetAtTime(
-      this.enabled&&this.powerOn?.006:.0001,this.ctx.currentTime,.12);
+      this.enabled&&this.powerOn?(this.silenced?.0001:.006):.0001,this.ctx.currentTime,.12);
   }
   enter(){
     this.playing=true;
     this.init();
     if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(
-      this.enabled?.055:.0001,this.ctx.currentTime,.35);
+      this.enabled?(this.silenced?.001:.055):.0001,this.ctx.currentTime,.35);
   }
   pause(){
     this.playing=false;
@@ -106,6 +106,16 @@ export class NightAudio{
   warning(){
     // Short low warning under the room tone, not a jump-scare sting.
     this.tone(122,.23,.028,69);
+  }
+  setSilence(active){
+    if(this.silenced===active)return;
+    this.silenced=active;
+    if(!this.ctx)return;
+    const t=this.ctx.currentTime;
+    if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(
+      this.enabled&&this.playing?(active?.001:.055):.0001,t,.18);
+    if(this.hum)this.hum.gain.setTargetAtTime(
+      this.enabled&&this.powerOn?(active?.0001:.006):.0001,t,.18);
   }
   environmentCue(kind){
     if(kind==='settle')this.noiseBurst(310,.29,.012,-.48);
