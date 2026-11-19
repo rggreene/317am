@@ -46,3 +46,18 @@ assert.equal(tickThreat(dark,{dt:.05,enemy:farEnemy,player:stationary,
   'cutting the lights provides a small concealment advantage');
 assert.ok(STRIKE_RANGE<1.3);
 console.log('Telegraphed attack, dodge, stagger and pursuit tests passed');
+
+const shadowedLow=createThreatBrain(),shadowedFast=createThreatBrain();
+const movementTest={dt:.05,enemy:{x:0,z:0},player:{x:2.55,z:0},
+  moving:true,flashlight:false,housePower:false};
+assert.equal(tickThreat(shadowedLow,{...movementTest,movementSpeed:.40,stance:0}).mode,'search',
+  'deep crouch + low pace should not make noise audible from across the room');
+assert.equal(tickThreat(shadowedFast,{...movementTest,movementSpeed:2.65,stance:1}).mode,'pursue',
+  'fast upright movement should alert the intruder');
+const lowSil=createThreatBrain(),highSil=createThreatBrain();
+const cover={dt:.05,enemy:{x:0,z:0},player:{x:2.9,z:0},
+  moving:false,housePower:true,flashlight:false};
+assert.equal(tickThreat(lowSil,{...cover,stance:0}).mode,'search',
+  'lowered posture should reduce ambient-light silhouette');
+assert.equal(tickThreat(highSil,{...cover,stance:1}).mode,'pursue',
+  'upright posture remains visible under the same light');

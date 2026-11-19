@@ -3,8 +3,11 @@ import {WeaponRig} from './WeaponRig.js';
 import {ImpactAudio} from '../audio/ImpactAudio.js';
 import {dampedSpring} from './ImpactQuality.js';
 import {isMeleeHit,moveWithCollision} from './CombatMath.js';
+import {createAnalogMovement,adjustAnalogMovement,eyeHeightFor,speedFor,
+  paceDescription,stanceDescription,STANDING_EYE_HEIGHT,MAX_PACE}
+  from './AnalogLocomotion.js';
 
-const PLAYER_HEIGHT=1.64;
+const PLAYER_HEIGHT=STANDING_EYE_HEIGHT;
 const MELEE_REACH=1.55;
 const MELEE_FACING=.84;
 
@@ -15,6 +18,10 @@ export class CombatLab{
     this.hurtTime=0;
     this.active=false;this.locked=false;
     this.keys=new Set();
+    this.analog=createAnalogMovement();
+    this.eyeHeight=PLAYER_HEIGHT;
+    this.currentSpeed=0;
+    this.actualSpeed=0;
     this.yaw=-.10;this.pitch=-.085;this.walkClock=0;this.hitCount=0;
     this.flashTime=0;this.statusTime=0;this.markerTime=0;
     this.direction=new THREE.Vector3();
@@ -27,10 +34,21 @@ export class CombatLab{
       if(event.code==='KeyV'&&!event.repeat&&!event.ctrlKey&&!event.metaKey){
         this.toggleMode();event.preventDefault();
       }
-      if(this.active)this.keys.add(event.code);
+      if(this.active){
+        this.keys.add(event.code);
+        if(event.code==='KeyC')event.preventDefault();
+      }
     });
     window.addEventListener('keyup',event=>this.keys.delete(event.code));
     window.addEventListener('blur',()=>this.keys.clear());
+    window.addEventListener('wheel',event=>{
+      // In orbit mode the mouse wheel must remain a zoom control.
+      if(!this.active||event.ctrlKey||event.metaKey)return;
+      event.preventDefault();
+      this.analog=adjustAnalogMovement(this.analog,event.deltaY,event.deltaMode,
+        this.keys.has('KeyC'));
+      this.updateMovementHud();
+    },{passive:false});
     document.addEventListener('pointerlockchange',()=>{
       this.locked=document.pointerLockElement===this.canvas;
       this.updateStatus();
@@ -58,6 +76,27 @@ export class CombatLab{
     });
     document.querySelector('#play-mode')?.addEventListener('click',()=>this.toggleMode());
     this.updateStatus();
+    this.updateMovementHud();
+  }
+  resetMovement(){
+    this.analog=createAnalogMovement();
+    this.eyeHeight=PLAYER_HEIGHT;
+    this.currentSpeed=0;
+    this.actualSpeed=0;
+    this.updateMovementHud();
+  }
+  updateMovementHud(){
+    const stance=document.querySelector('#stance-readout');
+    const pace=document.querySelector('#pace-readout');
+    const stanceMeter=document.querySelector('#stance-meter');
+    const paceMeter=document.querySelector('#pace-meter');
+    if(stance)stance.textContent='STANCE · '+stanceDescription(this.analog.stance);
+    if(pace)pace.textContent='PACE · '+this.analog.pace.toFixed(2)+
+      ' M/S · '+paceDescription(this.analog.pace);
+    if(stanceMeter)stanceMeter.style.width=(this.analog.stance*100).toFixed(1)+'%';
+    if(paceMeter)paceMeter.style.width=(this.analog.pace/MAX_PACE*100).toFixed(1)+'%';
+    this.root.dataset.analogStance=this.analog.stance.toFixed(3);
+    this.root.dataset.analogPace=this.analog.pace.toFixed(3);
   }
   toggleMode(){this.active?this.exit():this.enter();}
   enter(){
@@ -73,6 +112,7 @@ export class CombatLab{
     controls.enabled=false;
     this.keys.clear();
     this.active=true;
+    this.resetMovement();
     this.yaw=-.10;this.pitch=-.085;this.walkClock=0;
     this.cameraKick={value:0,velocity:0};
     camera.fov=72;camera.updateProjectionMatrix();
@@ -142,14 +182,28 @@ export class CombatLab{
     const strafe=Number(this.keys.has('KeyD'))-Number(this.keys.has('KeyA'));
     const mag=Math.hypot(forward,strafe)||1;
     const moving=forward!==0||strafe!==0;
-    const speed=this.keys.has('ShiftLeft')?2.9:1.75;
-    const mx=(-Math.sin(this.yaw)*forward+Math.cos(this.yaw)*strafe)/mag*speed*dt;
-    const mz=(-Math.cos(this.yaw)*forward-Math.sin(this.yaw)*strafe)/mag*speed*dt;
-    const next=moveWithCollision(camera.position.x,camera.position.z,mx,mz);
+    const preferred=speedFor(this.analog,this.keys.has('ShiftLeft'));
+    const targetSpeed=moving?preferred:0;
+    this.currentSpeed+=(targetSpeed-this.currentSpeed)*
+      (1-Math.exp(-dt*(moving?8:12)));
+    const mx=(-Math.sin(this.yaw)*forward+Math.cos(this.yaw)*strafe)/
+      mag*this.currentSpeed*dt;
+    const mz=(-Math.cos(this.yaw)*forward-Math.sin(this.yaw)*strafe)/
+      mag*this.currentSpeed*dt;
+    const oldX=camera.position.x,oldZ=camera.position.z;
+    const next=moveWithCollision(oldX,oldZ,mx,mz);
     camera.position.x=next.x;camera.position.z=next.z;
-    if(moving)this.walkClock+=dt*(this.keys.has('ShiftLeft')?13:9);
-    camera.position.y=PLAYER_HEIGHT+
-      (moving?Math.sin(this.walkClock)*.012:Math.sin(performance.now()*.0018)*.003);
+    // Actual distance matters: walking into a blocked sofa makes no footfall.
+    this.actualSpeed=dt>0?
+      Math.hypot(next.x-oldX,next.z-oldZ)/dt:0;
+    if(this.actualSpeed>.08)this.walkClock+=dt*(4+this.actualSpeed*3);
+    this.eyeHeight+=(eyeHeightFor(this.analog.stance)-this.eyeHeight)*
+      (1-Math.exp(-dt*9));
+    const bob=this.actualSpeed>.08?
+      Math.sin(this.walkClock)*(.003+this.actualSpeed*.004)*
+      (.5+.5*this.analog.stance):
+      Math.sin(performance.now()*.0018)*.002;
+    camera.position.y=this.eyeHeight+bob;
     this.cameraKick=dampedSpring(this.cameraKick.value,this.cameraKick.velocity,dt,23);
     camera.rotation.order='YXZ';
     camera.rotation.set(this.pitch+this.cameraKick.value,this.yaw,0);

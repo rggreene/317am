@@ -36,10 +36,21 @@
         <strong>3:17 AM · SURVIVAL NIGHT</strong>
         <span id="mode-status">PRACTICE MODE · CLICK TO CAPTURE</span><span id="quality-play">GRAPHICS BALANCED · P TO CHANGE</span>
       </div>
+      <section id="movement-hud" aria-label="Movement stance and speed" aria-live="off">
+        <div class="movement-row">
+          <span id="stance-readout">STANCE · STANDING</span>
+          <div class="movement-track" aria-hidden="true"><i id="stance-meter"></i></div>
+        </div>
+        <div class="movement-row">
+          <span id="pace-readout">PACE · 1.75 M/S · WALK</span>
+          <div class="movement-track" aria-hidden="true"><i id="pace-meter"></i></div>
+        </div>
+        <div class="movement-help">WHEEL PACE · HOLD C + WHEEL STANCE</div>
+      </section>
       <div id="crosshair" aria-hidden="true"><span></span><span></span></div>
       <div id="combat-feedback" role="status">CLICK SCENE TO CAPTURE THE MOUSE</div>
       <div class="combat-footer">
-        <span><b>WASD</b> MOVE <b>SHIFT</b> RUN <b>LEFT CLICK</b> SWING <b>E</b> INTERACT</span>
+        <span><b>WASD</b> MOVE <b>WHEEL</b> PACE <b>C + WHEEL</b> STANCE <b>SHIFT</b> SPRINT <b>LEFT CLICK</b> PAN <b>E</b> INTERACT</span>
         <span><b>V</b> ORBIT <b>ESC</b> RELEASE MOUSE <b>M</b> MUTE <b>P</b> QUALITY <b>N</b> RESTART</span>
       </div>
       <div class="hit-counter">HITS LANDED <strong id="hit-count">0</strong></div>

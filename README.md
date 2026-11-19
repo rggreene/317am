@@ -152,3 +152,11 @@ The media console and television are now separate compact glTF models generated 
 ### Candidate asset stability policy
 
 The verified `char_intruder_v02.glb` is committed to the private branch and is the canonical reviewed prototype binary. CI validates that committed asset directly and **does not rewrite the repository**. The Python source can regenerate an equivalent model when required, but byte-identical files are not promised on different native Python/NumPy/Pillow platforms; a new export requires a new review before replacing the committed GLB.
+
+## Analog first-person stance and speed
+
+In first-person survival mode, **mouse wheel alone** changes the player's preferred movement pace between **0.35 and 3.0 m/s**, and **holding C while scrolling** changes stance continuously between full standing (**1.64 m eye height**) and a deep crouch (**0.88 m eye height**). Wheel up increases speed or raises stance; wheel down slows down or lowers stance. Changes to eye height and actual movement velocity are smoothed. The selected pace persists when you stop walking; a low stance automatically caps maximum movement speed without erasing your selected pace. **Shift** remains an optional temporary sprint override, limited by stance. In orbit mode, the mouse wheel continues to zoom.
+
+The HUD's small speed/stance meters confirm your setting. Slow, low movement produces softer, less frequent footsteps and reduces the range at which the intruder detects you in ambient light; running upright is louder. This is a stealth prototype, not a fully simulated crouch collision capsule or contextual animation retargeting. All camera height transitions are visual—furniture collision footprints currently remain unchanged.
+
+Test with `npm run test:analog-locomotion` or the browser smoke test.

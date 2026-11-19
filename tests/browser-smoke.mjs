@@ -55,6 +55,23 @@ try{
   await page.keyboard.press('v');
   await page.waitForFunction(()=>document.querySelector('#app')?.classList.contains('fps-mode'));
   assert.equal(await page.locator('#night-end').isVisible(),false,'win/loss modal showed at game start');
+  // Scroll alone sets the persistent preferred pace; holding C alters only
+  // stance. Neither input should affect the orbit camera controls later.
+  await page.mouse.move(640,360);
+  const initialPace=Number(await page.locator('#app').getAttribute('data-analog-pace'));
+  assert.ok(Math.abs(initialPace-1.75)<.01,'default walking pace wrong');
+  await page.mouse.wheel(0,-120);
+  await page.waitForFunction(()=>Number(document.querySelector('#app')?.dataset.analogPace)>1.75,
+    null,{timeout:3000});
+  const quicker=Number(await page.locator('#app').getAttribute('data-analog-pace'));
+  await page.keyboard.down('c');
+  await page.mouse.wheel(0,200);
+  await page.waitForFunction(()=>Number(document.querySelector('#app')?.dataset.analogStance)<.9,
+    null,{timeout:3000});
+  await page.keyboard.up('c');
+  assert.equal(Number(await page.locator('#app').getAttribute('data-analog-pace')),
+    quicker,'C + wheel must not change preferred speed');
+  assert.match(await page.locator('#stance-readout').innerText(),/CROUCHED|LOWERED/);
   const start=await page.locator('#night-clock').innerText();
   assert.match(start,/^0[01]:[0-5][0-9]$/,'timer incorrectly formatted');
   await page.waitForFunction(first=>
@@ -75,6 +92,13 @@ try{
   await page.screenshot({path:'artifacts/survival-fps.png'});
   await page.keyboard.press('v');
   assert.equal(await page.locator('#fps-hud').isVisible(),false,'orbit mode not restored');
+  const orbitPace=await page.locator('#app').getAttribute('data-analog-pace');
+  const orbitStance=await page.locator('#app').getAttribute('data-analog-stance');
+  await page.mouse.wheel(0,120);
+  assert.equal(await page.locator('#app').getAttribute('data-analog-pace'),orbitPace,
+    'orbit wheel should not alter saved FPS pace');
+  assert.equal(await page.locator('#app').getAttribute('data-analog-stance'),orbitStance,
+    'orbit wheel should not alter saved FPS stance');
   assert.equal(await page.locator('#night-end').isVisible(),false,'end overlay blocked orbit mode');
   // Verify the original rig remains available for honest A/B review and
   // protects the survival build if the candidate later regresses.

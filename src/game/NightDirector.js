@@ -88,6 +88,7 @@ export class NightDirector{
     combat.weapon.swingTime=.76;
     combat.weapon.hitStop=0;
     combat.keys.clear();
+    combat.resetMovement?.();
     combat.yaw=-.10;
     combat.pitch=-.085;
     combat.hurtTime=0;
@@ -194,10 +195,12 @@ export class NightDirector{
 
     const player=this.game.view.camera.position;
     const keys=this.game.combat.keys;
-    const moving=['KeyW','KeyA','KeyS','KeyD'].some(code=>keys.has(code));
-    const running=moving&&keys.has('ShiftLeft');
+    const movementSpeed=this.game.combat.actualSpeed??0;
+    const stance=this.game.combat.analog?.stance??1;
+    const moving=movementSpeed>.08;
+    const running=moving&&movementSpeed>2.35;
     const step=tickThreat(this.brain,{
-      dt,enemy:this.enemyPosition,player,moving,running,
+      dt,enemy:this.enemyPosition,player,moving,running,movementSpeed,stance,
       flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false,
       housePower:this.state.breakerOn
     });
@@ -291,8 +294,10 @@ export class NightDirector{
     }
 
     const keys=this.game.combat.keys;
-    if(['KeyW','KeyA','KeyS','KeyD'].some(code=>keys.has(code))){
-      this.audio.step(this.state.elapsed,false,1,0,keys.has('ShiftLeft'));
+    const playerPace=this.game.combat.actualSpeed??0;
+    if(playerPace>.10){
+      this.audio.step(this.state.elapsed,false,1,0,playerPace>2.35,
+        playerPace,this.game.combat.analog?.stance??1);
     }
     if(!this.endedHandled&&['won','lost'].includes(this.state.phase)){
       this.endedHandled=true;

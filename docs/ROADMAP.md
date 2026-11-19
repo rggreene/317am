@@ -43,3 +43,7 @@ See [Art Revision Plan](ART_REVISION_PLAN.md), [Art Acceptance Checklist](ART_AC
 ## Character-focused production: The Uninvited v2 (specification complete)
 
 The dedicated [Art Bible](INTRUDER_V2_ART_BIBLE.md), [Production Checklist](INTRUDER_V2_PRODUCTION_CHECKLIST.md), [Blender/GLB Spec](INTRUDER_V2_BLENDER_GLB_SPEC.md) and [contract](../assets/characters/intruder-v2.contract.json) define the next character asset. Current status: **design/rig/animation contract delivered; v2 Blender model and GLB not yet created**. Complete first design/mesh/rig gates, then implement safe fallback and correct contact-time damage when integrating. Existing 12-bone procedural intruder remains active.
+
+## Analog movement controls — alpha integration
+
+FPS survival: wheel = persistent desired walking speed; C + wheel = variable crouch/stand eye height; Shift = temporary sprint while posture permits. Pace is smoothed, crouching limits top speed, low/slow movement changes footsteps and detection, HUD meters provide feedback, and orbit wheel zoom remains unchanged. See `src/game/AnalogLocomotion.js` and the unit + browser tests. Future polish: character-body collision at lowered heights, headroom checks, and footstep material routing.
