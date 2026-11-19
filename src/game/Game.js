@@ -5,6 +5,9 @@ import { loadFryingPan } from '../props/loadFryingPan.js';
 import {createRiggedIntruder,INTRUDER_CLIPS} from '../actors/IntruderController.js';
 import {CombatLab} from './CombatLab.js';
 import {NightDirector} from './NightDirector.js';
+import {APARTMENT_BLOCKERS} from './CombatMath.js';
+import {doorBlockers} from './DoorState.js';
+import {sightClear} from '../audio/Occlusion.js';
 import {applyQualityPreset,nextQuality} from '../rendering/QualityManager.js';
 import {loadGLB} from '../assets/loadGLB.js';
 import {applyArtReplacements} from '../assets/ArtReplacements.js';
@@ -104,7 +107,10 @@ export class Game {
         this.night?.enter();
       },
       getTarget:()=>this.riggedIntruder?.getTarget() ?? new THREE.Vector3(.28,1.43,-.38),
-      canHit:()=>Boolean(this.night?.state?.enemyEntered&&this.night?.state?.phase==='playing'),
+      canHit:()=>Boolean(this.night?.state?.enemyEntered&&
+        this.night?.state?.phase==='playing'&&
+        sightClear(this.view.camera.position,this.night.enemyPosition,
+          [...APARTMENT_BLOCKERS,...doorBlockers(this.night.interiorDoor)])),
       onHit:({attacker})=>{
         if(this.riggedIntruder)this.riggedIntruder.reactToImpact(attacker);
         else this.intruder.animate(this.elapsed);
