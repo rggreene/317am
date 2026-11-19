@@ -112,3 +112,7 @@ The breaker now affects detection: a lit room exposes a stationary player at a s
 The sofa and coffee table now ship as **actual glTF 2.0 binary models** rather than only geometry created in the browser. Source: `scripts/generate-hero-furniture.mjs`. Rebuild with `npm run assets:hero-furniture` and validate with `npm run test:hero-glb`.
 
 These are **procedurally authored/exported meshes**, not Blender sculpted/PBR-textured final furniture. The manifest lists them as **in_review**. On startup the alpha loads the two GLBs, checks their dimensions and swaps them into the existing art slots. If an import fails, the previous procedural model remains visible, keeping the survival game playable. Final artist-authored models are still the long-term target.
+
+## Imported furniture PBR microdetail
+
+The reviewed glTF furniture receives subtle deterministic procedural normal and roughness maps in `src/assets/ArtMaterialFinish.js` (128×128 per material family), cached and shared across instances. These are interim fabric weave / wood-grain surface details, **not scanned or professionally textured materials**. Texture assignment occurs after scale validation and before an asset replaces its fallback.

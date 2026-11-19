@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {finishFurnitureMaterials} from './ArtMaterialFinish.js';
 
 // Manifest-driven, reversible optional GLB art replacement.
 // Neither the gameplay collision volumes nor the actor animations live here.
@@ -39,12 +40,14 @@ export async function applyArtReplacements({slots,manifest,urls,loadModel,onWarn
       if(!loaded?.scene?.isObject3D)throw Error('GLB has no valid scene');
       const check=compareArtBounds(loaded.scene,entry.target_dimensions_m);
       if(!check.ok)throw Error(check.reason);
+      const materialFinishes=finishFurnitureMaterials(loaded.scene);
       // Do not mutate the working fallback until every validation has succeeded.
       const fallback=[...slot.children];
       slot.clear();
       slot.add(loaded.scene);
       slot.userData.fallbackGeometry=fallback;
       slot.userData.sourceGLB=entry.model_glb;
+      slot.userData.materialFinishes=materialFinishes;
       slot.userData.prototypeQuality='glb-'+entry.status;
       loaded.scene.traverse(node=>{
         if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}
@@ -65,6 +68,7 @@ export function restoreProceduralFallback(slot){
   for(const child of originals)slot.add(child);
   delete slot.userData.fallbackGeometry;
   delete slot.userData.sourceGLB;
+  delete slot.userData.materialFinishes;
   slot.userData.prototypeQuality='art-pass-1';
   return true;
 }
