@@ -12,6 +12,8 @@ globalThis.document={createElement(tag){
 const {buildRoom}=await import('../src/world/buildRoom.js');
 const {HERO_LAYOUT,HERO_QUALITY}=await import('../src/world/heroLayout.js');
 const world=buildRoom();
+const contacts=world.root.getObjectByName('Subtle furniture floor contact');
+assert.equal(contacts?.children?.length,6,'hero area must have all six floor contacts');
 assert.ok(world.root.isGroup,'room must be a Three Group');
 assert.ok(world.intruder.group.parent===world.root,'intruder remains in room');
 assert.equal(HERO_LAYOUT.spawn.x,.05);

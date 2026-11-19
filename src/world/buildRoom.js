@@ -3,6 +3,7 @@ import {createIntruder} from '../actors/createIntruder.js';
 import {makeMaterials} from './materialLibrary.js';
 import {box,rounded,cylinder,sphere,plane} from './EnvironmentKit.js';
 import {HERO_LAYOUT} from './heroLayout.js';
+import {createContactShadows} from './ContactShadows.js';
 import {buildHeroSofa,buildHeroCoffeeTable,buildHeroBed,buildHeroDresser,buildHeroRug,buildHeroMediaCenter} from './HeroFurniture.js';
 
 /**
@@ -159,6 +160,8 @@ export function buildRoom(){
   // A small baseboard outlet + accessible dangling cable.
   b([.04,.09,.11],m.trim,[3.13,.19,1.81],{cast:false});
   b([.035,.15,.015],m.black,[3.10,.15,1.84],{cast:false});
+
+  root.add(createContactShadows());
 
   const intruder=createIntruder();
   root.add(intruder.group);
