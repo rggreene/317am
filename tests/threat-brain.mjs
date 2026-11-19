@@ -30,7 +30,7 @@ assert.equal(output.mode,'staggered','a pan hit cancels an attack windup');
 const stalk=createThreatBrain();
 output=tickThreat(stalk,{dt:.05,enemy:{x:2.6,z:2},player:{x:-2,z:-2}});
 assert.equal(output.mode,'search');
-output=tickThreat(stalk,{dt:.05,enemy:{x:2.6,z:2},player:{x:-1,z:2},moving:true,running:true});
+output=tickThreat(stalk,{dt:.05,enemy:{x:2.6,z:2},player:{x:-1,z:2},moving:true,running:true,blockers:[]});
 assert.equal(output.mode,'pursue','running can be heard farther away');
 const last={...output.goal};
 output=tickThreat(stalk,{dt:.05,enemy:{x:2.6,z:2},player:{x:-2.5,z:-2.5}});
@@ -39,23 +39,23 @@ const powered=createThreatBrain();
 const dark=createThreatBrain();
 const farEnemy={x:0,z:0},stationary={x:2.8,z:0};
 assert.equal(tickThreat(powered,{dt:.05,enemy:farEnemy,player:stationary,
-  moving:false,flashlight:false,housePower:true}).mode,'pursue',
+  moving:false,flashlight:false,housePower:true,blockers:[]}).mode,'pursue',
   'house lights expose nearby stationary players');
 assert.equal(tickThreat(dark,{dt:.05,enemy:farEnemy,player:stationary,
-  moving:false,flashlight:false,housePower:false}).mode,'search',
+  moving:false,flashlight:false,housePower:false,blockers:[]}).mode,'search',
   'cutting the lights provides a small concealment advantage');
 assert.ok(STRIKE_RANGE<1.3);
 console.log('Telegraphed attack, dodge, stagger and pursuit tests passed');
 
 const shadowedLow=createThreatBrain(),shadowedFast=createThreatBrain();
-const movementTest={dt:.05,enemy:{x:0,z:0},player:{x:2.55,z:0},
+const movementTest={dt:.05,blockers:[],enemy:{x:0,z:0},player:{x:2.55,z:0},
   moving:true,flashlight:false,housePower:false};
 assert.equal(tickThreat(shadowedLow,{...movementTest,movementSpeed:.40,stance:0}).mode,'search',
   'deep crouch + low pace should not make noise audible from across the room');
 assert.equal(tickThreat(shadowedFast,{...movementTest,movementSpeed:2.65,stance:1}).mode,'pursue',
   'fast upright movement should alert the intruder');
 const lowSil=createThreatBrain(),highSil=createThreatBrain();
-const cover={dt:.05,enemy:{x:0,z:0},player:{x:2.9,z:0},
+const cover={dt:.05,blockers:[],enemy:{x:0,z:0},player:{x:2.9,z:0},
   moving:false,housePower:true,flashlight:false};
 assert.equal(tickThreat(lowSil,{...cover,stance:0}).mode,'search',
   'lowered posture should reduce ambient-light silhouette');
@@ -66,7 +66,7 @@ assert.equal(tickThreat(highSil,{...cover,stance:1}).mode,'pursue',
 // not an immediate return to patrol or an omniscient chase.
 const investigator=createThreatBrain();
 const farAway={x:9,z:9};
-tickThreat(investigator,{dt:.05,enemy:{x:0,z:0},player:{x:2,z:0}});
+tickThreat(investigator,{dt:.05,enemy:{x:0,z:0},player:{x:2,z:0},blockers:[]});
 for(let i=0;i<45;i++){
   tickThreat(investigator,{dt:.1,enemy:{x:0,z:0},player:farAway,housePower:false});
 }
@@ -77,3 +77,11 @@ for(let i=0;i<13;i++){
   investigate=tickThreat(investigator,{dt:.1,enemy:{x:2,z:0},player:farAway,housePower:false});
 }
 assert.equal(investigate.mode,'search','intruder resumes patrol after investigating');
+
+// Occlusion must matter independently of raw range.
+const blocker=[{minX:.8,maxX:1.2,minZ:-.5,maxZ:.5}];
+const perception={dt:.05,enemy:{x:0,z:0},player:{x:2,z:0},housePower:true};
+assert.equal(tickThreat(createThreatBrain(),{...perception,blockers:[]}).mode,'pursue');
+assert.equal(tickThreat(createThreatBrain(),{...perception,blockers:blocker}).mode,'search');
+assert.equal(tickThreat(createThreatBrain(),{...perception,blockers:blocker,moving:true,movementSpeed:2.8}).mode,'pursue',
+  'loud movement can still be heard through an obstacle');
