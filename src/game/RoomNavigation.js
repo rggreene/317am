@@ -2,7 +2,7 @@
 // These are semantic zones, not enclosed rooms: the bedroom divider is open.
 export const SEARCH_AREAS=Object.freeze([
   {id:'entry',name:'Entry',point:{x:2.72,z:2.08}},
-  {id:'living',name:'Living room',point:{x:.22,z:1.95}},
+  {id:'living',name:'Living room',point:{x:0,z:1.95}},
   {id:'hall',name:'Hall passage',point:{x:-.56,z:.45}},
   {id:'bedroom',name:'Bedroom',point:{x:-1.05,z:1.88}},
   {id:'kitchen',name:'Kitchen passage',point:{x:.26,z:-.62}}
