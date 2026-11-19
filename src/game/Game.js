@@ -104,8 +104,7 @@ export class Game {
           if(this.combat.active&&['won','lost'].includes(this.night.state.phase))this.night.restart();
           break;
         case 'KeyM':
-          this.night.audio.enabled=!this.night.audio.enabled;
-          this.night.audio.setMuted?.(!this.night.audio.enabled);
+          this.night.audio.setMuted(this.night.audio.enabled);
           break;
         case 'KeyR':if(!this.combat.active)this.toggleIntruderInspection();break;
         case 'Digit1':

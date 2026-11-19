@@ -24,6 +24,7 @@ export class NightDirector{
     this.lastStepAt=-100;
     this.interactable=null;
     this.feedbackTimer=0;
+    this.endedHandled=false;
     this.lastPhase='idle';
     this.updatePresentation();
   }
@@ -60,6 +61,7 @@ export class NightDirector{
     this.showEnemy(this.state.enemyEntered);
     this.pathAge=0;
     this.audio.enter();
+    this.endedHandled=false;
     this.updatePresentation();
   }
   pause(){
@@ -70,6 +72,8 @@ export class NightDirector{
   }
   restart(){
     this.state=createNight();
+    this.endedHandled=false;
+    this.lastPhase='idle';
     this.path=[];
     this.pathAge=0;
     this.actorState='idle';
@@ -186,6 +190,14 @@ export class NightDirector{
     const forward=Number(combat.keys.has('KeyW'))-Number(combat.keys.has('KeyS'));
     const sideways=Number(combat.keys.has('KeyD'))-Number(combat.keys.has('KeyA'));
     if(forward||sideways)this.audio.step(this.state.elapsed,false);
+    if(!this.endedHandled&&['won','lost'].includes(this.state.phase)){
+      this.endedHandled=true;
+      if(document.pointerLockElement===this.game.combat.canvas){
+        document.exitPointerLock?.();
+      }
+      this.game.combat.keys.clear();
+      this.audio.pause();
+    }
     if(this.state.phase!==this.lastPhase){
       if(this.state.phase==='won')this.audio.call();
       if(this.state.phase==='lost')this.audio.door();
@@ -198,11 +210,14 @@ export class NightDirector{
     this.props.update(s);
     // Power control intentionally affects practical lights, not player flashlight.
     this.game.setBreakerPower?.(s.breakerOn);
+    this.audio.setPower(s.breakerOn);
     const set=(id,value)=>{
       const node=document.querySelector(id);
       if(node)node.textContent=value;
     };
-    set('#night-clock','00:'+String(Math.ceil(s.remaining)).padStart(2,'0'));
+    const remaining=Math.ceil(s.remaining);
+    set('#night-clock',String(Math.floor(remaining/60)).padStart(2,'0')+':'+
+      String(remaining%60).padStart(2,'0'));
     set('#night-health',String(s.health).padStart(3,'0')+'%');
     set('#night-objective',nightObjective(s));
     set('#night-message',s.message);
@@ -217,11 +232,11 @@ export class NightDirector{
       hud.classList.toggle('night-won',s.phase==='won');
     }
     const overlay=document.querySelector('#night-end');
-    if(overlay)overlay.hidden=!(s.phase==='won'||s.phase==='lost');
+    if(overlay)overlay.hidden=!(this.active&&(s.phase==='won'||s.phase==='lost'));
     set('#night-end-title',s.phase==='won'?'YOU SURVIVED':'THE NIGHT WON');
     set('#night-end-copy',s.phase==='won'?
       'The sirens finally reach your street. You held on long enough.':
       s.helpCalled?'Dispatch was on the way. It was not fast enough.':'You never called for help.');
-    this.game.rootElement.classList.toggle('night-ending',s.phase==='won'||s.phase==='lost');
+    this.game.rootElement.classList.toggle('night-ending',this.active&&(s.phase==='won'||s.phase==='lost'));
   }
 }

@@ -3,7 +3,7 @@
 export class NightAudio{
   constructor(){
     this.ctx=null;this.ambient=null;this.ambientGain=null;this.hum=null;
-    this.enabled=true;this.lastStep=-100;this.lastHeartbeat=-100;
+    this.enabled=true;this.playing=false;this.powerOn=true;this.lastStep=-100;this.lastEnemyStep=-100;this.lastHeartbeat=-100;
   }
   init(){
     const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -15,10 +15,10 @@ export class NightAudio{
       let last=0;for(let i=0;i<values.length;i++){last=.99*last+.01*(Math.random()*2-1);values[i]=last;}
       const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
       src.buffer=buf;src.loop=true;filter.type='lowpass';filter.frequency.value=450;
-      gain.gain.value=.055;src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);src.start();
+      gain.gain.value=this.enabled&&this.playing?.055:.0001;src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);src.start();
       this.ambient=src;this.ambientGain=gain;
       const osc=ctx.createOscillator(),humGain=ctx.createGain();
-      osc.type='sine';osc.frequency.value=59;humGain.gain.value=.006;
+      osc.type='sine';osc.frequency.value=59;humGain.gain.value=this.enabled&&this.powerOn?.006:.0001;
       osc.connect(humGain);humGain.connect(ctx.destination);osc.start();
       this.hum=humGain;
     }
@@ -36,11 +36,28 @@ export class NightAudio{
     osc.start(t);osc.stop(t+duration+.015);
   }
   setPower(enabled){
-    if(!this.ctx)return;
-    this.hum?.gain.setTargetAtTime(enabled?.006:.0001,this.ctx.currentTime,.25);
+    this.powerOn=enabled;
+    if(this.ctx&&this.hum)this.hum.gain.setTargetAtTime(
+      this.enabled&&enabled?.006:.0001,this.ctx.currentTime,.25);
   }
-  enter(){this.init();if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(.055,this.ctx.currentTime,.35);}
-  pause(){if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(.0001,this.ctx.currentTime,.15);}
+  setMuted(muted){
+    this.enabled=!muted;
+    if(!this.ctx)return;
+    if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(
+      this.enabled&&this.playing?.055:.0001,this.ctx.currentTime,.12);
+    if(this.hum)this.hum.gain.setTargetAtTime(
+      this.enabled&&this.powerOn?.006:.0001,this.ctx.currentTime,.12);
+  }
+  enter(){
+    this.playing=true;
+    this.init();
+    if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(
+      this.enabled?.055:.0001,this.ctx.currentTime,.35);
+  }
+  pause(){
+    this.playing=false;
+    if(this.ambientGain)this.ambientGain.gain.setTargetAtTime(.0001,this.ctx.currentTime,.15);
+  }
   step(now,enemy=false,distance=1){
     const delay=enemy?.8:.38;
     if(now-(enemy?this.lastEnemyStep:this.lastStep||-100)<delay)return;
