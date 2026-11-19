@@ -85,6 +85,7 @@ export async function createRiggedIntruder(){
       flash.intensity=flashTime>0?flashTime*14:0;
     },
     reactToImpact,
+    setBasePosition(x,z){rest.set(x,0,z);group.position.set(x,0,z);},
     getTarget(){return new THREE.Vector3(group.position.x,1.43,group.position.z);},
     set onChanged(fn){onChanged=fn;if(current)fn(current);},
     get clip(){return current;}

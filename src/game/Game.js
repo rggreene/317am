@@ -4,6 +4,7 @@ import { buildRoom } from '../world/buildRoom.js';
 import { loadFryingPan } from '../props/loadFryingPan.js';
 import {createRiggedIntruder,INTRUDER_CLIPS} from '../actors/IntruderController.js';
 import {CombatLab} from './CombatLab.js';
+import {NightDirector} from './NightDirector.js';
 
 export class Game {
   constructor({canvas,root}){
@@ -79,17 +80,33 @@ export class Game {
         this.intruderInspect=false;
         const label=document.querySelector('#inspect-mode');
         if(label)label.textContent='APARTMENT OVERVIEW · E PAN · R INTRUDER';
+        this.night?.enter();
       },
       getTarget:()=>this.riggedIntruder?.getTarget() ?? new THREE.Vector3(.28,1.43,-.38),
+      canHit:()=>Boolean(this.night?.state?.enemyEntered&&this.night?.state?.phase==='playing'),
       onHit:({attacker})=>{
         if(this.riggedIntruder)this.riggedIntruder.reactToImpact(attacker);
+        this.night?.onPlayerHit();
         else this.intruder.animate(this.elapsed);
       }
     });
+    this.night=new NightDirector(this);
+    root.addEventListener('night-pause',()=>this.night.pause());
+    document.querySelector('#night-restart')?.addEventListener('click',()=>this.night.restart());
     this.handleKeyDown=(e)=>{
       if(e.repeat || e.ctrlKey || e.metaKey || e.altKey)return;
       switch(e.code){
-        case 'KeyE':if(!this.combat.active)this.togglePanInspection();break;
+        case 'KeyE':
+          if(this.combat.active)this.night.interact();
+          else this.togglePanInspection();
+          break;
+        case 'KeyN':
+          if(this.combat.active&&['won','lost'].includes(this.night.state.phase))this.night.restart();
+          break;
+        case 'KeyM':
+          this.night.audio.enabled=!this.night.audio.enabled;
+          this.night.audio.setMuted?.(!this.night.audio.enabled);
+          break;
         case 'KeyR':if(!this.combat.active)this.toggleIntruderInspection();break;
         case 'Digit1':
         case 'Digit2':
@@ -117,6 +134,7 @@ export class Game {
       };
       const status=document.querySelector('#intruder-status');
       if(status)status.textContent='12-bone animated GLB loaded';
+      this.night?.onRigReady();
     }catch(error){
       console.error('Intruder GLB failed. Keeping fallback:',error);
       const status=document.querySelector('#intruder-status');
@@ -182,6 +200,13 @@ export class Game {
     const label=document.querySelector('#inspect-mode');
     if(label)label.textContent=this.intruderInspect?'INSPECTING INTRUDER · R TO RETURN':'APARTMENT OVERVIEW · E PAN · R INTRUDER';
   }
+  setBreakerPower(power){
+    const strength=power?1:.025;
+    this.lamp.intensity=(this.moody?17:8)*strength;
+    this.livingLamp.intensity=(this.moody?9.2:4.8)*strength;
+    this.tv.intensity=(this.moody?4.4:1.7)*strength;
+    this.panLight.intensity=(this.moody?8:3)*strength;
+  }
   configureLighting(){
     this.ambient.intensity=this.moody?0.65:1.65;
     this.moon.intensity=this.moody?1.35:2.1;
@@ -191,6 +216,7 @@ export class Game {
     this.windowBounce.intensity=this.moody?3.7:2.1;
     this.view.renderer.toneMappingExposure=this.moody?1.12:1.34;
     this.view.scene.fog.density=this.moody?0.024:0.012;
+    this.setBreakerPower(this.night?.state.breakerOn??true);
   }
   frame=(now)=>{
     const delta=Math.min(0.05,(now-this.lastFrame)/1000||0);
@@ -207,7 +233,10 @@ export class Game {
       this.panAsset?.mixer?.update(delta);
     }
     const {camera,controls,renderer,scene}=this.view;
-    if(this.combat.active)this.combat.update(delta);
+    if(this.combat.active){
+      this.combat.update(delta);
+      this.night.update(delta);
+    }
     if(!this.combat.active && this.cameraAnimation){
       camera.position.lerp(this.cameraAnimation.pos,Math.min(1,delta*6));
       controls.target.lerp(this.cameraAnimation.target,Math.min(1,delta*6));

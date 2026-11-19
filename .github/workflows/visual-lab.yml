@@ -1,8 +1,9 @@
-name: Visual lab build
+name: Visual lab and vertical slice build
 on:
   push:
     branches:
       - feature/visual-overhaul
+      - feature/vertical-slice-alpha
   pull_request:
     branches:
       - main
@@ -16,9 +17,9 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Check module syntax
+      - name: Check module syntax and gameplay tests
         run: npm run check
-      - name: Validate committed GLB asset
+      - name: Validate committed GLB assets
         run: npm run check:assets
       - name: Build static site
         run: npm run build

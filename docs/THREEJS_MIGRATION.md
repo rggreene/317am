@@ -89,3 +89,13 @@ Run `npm run check` for JavaScript syntax checks. Production build output is `di
 ## Guidance
 
 Do **not** deploy this lab to the existing public Netlify site in place of the v0.4 game. To preview it, use `npm run dev` or Netlify's branch preview.
+
+## Vertical Slice Alpha (branch `feature/vertical-slice-alpha`)
+
+- New timed 75-second playable session: **E** to call dispatch, barricade, switch breaker, and use a single first-aid kit.
+- Dynamic intruder entry and A* grid navigation. A reinforced door delays entry.
+- Hostile actor can hurt the player at close range; successful pan hits stun the intruder. Death and survival screens are included.
+- Synthetic atmosphere: room hum, footsteps, phone, barricade and impact feedback (no autoplay audio).
+- This is a compact survival demonstration, **not full parity** with Nightfall v0.4 on `main`. The visual lab remains available.
+- Controls: **V** first-person/orbit; **WASD**, Shift, left click pan, **E** interact, **N** restart after game over, **M** mute, Esc release mouse.
+- Performance, physical collision details, visuals and enemy pacing require a real-browser playtest.

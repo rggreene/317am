@@ -9,9 +9,10 @@ const MELEE_REACH=1.55;
 const MELEE_FACING=.84;
 
 export class CombatLab{
-  constructor({view,canvas,root,onHit=()=>{},onEnter=()=>{},getTarget=()=>new THREE.Vector3(.28,1.43,-.38)}){
+  constructor({view,canvas,root,onHit=()=>{},onEnter=()=>{},getTarget=()=>new THREE.Vector3(.28,1.43,-.38),canHit=()=>true}){
     this.view=view;this.canvas=canvas;this.root=root;
-    this.onHit=onHit;this.onEnter=onEnter;this.getTarget=getTarget;
+    this.onHit=onHit;this.onEnter=onEnter;this.getTarget=getTarget;this.canHit=canHit;
+    this.hurtTime=0;
     this.active=false;this.locked=false;
     this.keys=new Set();
     this.yaw=-.10;this.pitch=-.085;this.walkClock=0;this.hitCount=0;
@@ -94,7 +95,8 @@ export class CombatLab{
     camera.fov=this.orbitState.fov;camera.updateProjectionMatrix();
     controls.target.copy(this.orbitState.target);
     controls.enabled=true;controls.update();
-    this.root.classList.remove('fps-mode','impact','miss','hit-confirm');
+    this.root.classList.remove('fps-mode','impact','miss','hit-confirm','player-hurt');
+    this.root.dispatchEvent(new CustomEvent('night-pause'));
     this.updateStatus();
   }
   updateStatus(){
@@ -114,7 +116,7 @@ export class CombatLab{
     const camera=this.view.camera;
     camera.getWorldDirection(this.direction);
     const target=this.getTarget();
-    const hit=isMeleeHit(camera.position,this.direction,target,MELEE_REACH,MELEE_FACING);
+    const hit=this.canHit()&&isMeleeHit(camera.position,this.direction,target,MELEE_REACH,MELEE_FACING);
     this.weapon.contact(hit);
     this.root.classList.remove('impact','miss','hit-confirm');
     if(hit){
@@ -152,6 +154,10 @@ export class CombatLab{
     camera.rotation.order='YXZ';
     camera.rotation.set(this.pitch+this.cameraKick.value,this.yaw,0);
     this.weapon.update(dt,moving);
+    if(this.hurtTime>0){
+      this.hurtTime=Math.max(0,this.hurtTime-dt);
+      if(!this.hurtTime)this.root.classList.remove('player-hurt');
+    }
     if(this.flashTime>0){
       this.flashTime=Math.max(0,this.flashTime-dt);
       if(!this.flashTime)this.root.classList.remove('impact','miss');
