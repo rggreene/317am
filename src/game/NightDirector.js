@@ -219,6 +219,25 @@ export class NightDirector{
     const noise=this.pendingNoise;
     this.pendingNoise=null;
     const obstacles=[...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)];
+    if(this.doorForceTime>0){
+      this.doorForceTime=Math.max(0,this.doorForceTime-dt);
+      this.target?.setIntent('windup',1-this.doorForceTime/1.15);
+      this.setActorPose('idle');
+      if(this.doorForceTime===0){
+        openDoor(this.interiorDoor,true);
+        this.path=[];
+        this.pathAge=0;
+        this.audio.door();
+        this.state.message='THE BEDROOM DOOR GIVES WAY.';
+      }
+      return;
+    }
+    const step=tickThreat(this.brain,{
+      dt,enemy:this.enemyPosition,player,moving,running,movementSpeed,stance,
+      flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false,
+      housePower:this.state.breakerOn,soundEvent:noise,blockers:obstacles
+    });
+    const distance=Math.hypot(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
     if(step.telegraph){
       this.state.message='THE INTRUDER DRAWS BACK. MOVE!';
       this.game.combat.setFeedback('DODGE THE STRIKE');
