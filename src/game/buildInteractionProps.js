@@ -23,7 +23,11 @@ export function buildInteractionProps(scene){
   wallFixtures.name='Right wall fixtures';
   root.add(wallFixtures);
   // Door is attached to the existing right-side wall, not a new collision blocker.
-  rounded(wallFixtures,[.07,2.10,.88],m.wood,[3.11,1.08,1.98],.025,{name:'Front Door'});
+  // Pivot at the near jamb: the entry leaf can visibly give way on breach.
+  const doorHinge=new THREE.Group();
+  doorHinge.position.set(3.11,0,1.54);
+  wallFixtures.add(doorHinge);
+  rounded(doorHinge,[.07,2.10,.88],m.wood,[0,1.08,.44],.025,{name:'Front Door'});
   box(wallFixtures,[.091,.07,.77],m.trim,[3.055,2.11,1.98],{cast:false});
   for(const z of [1.53,2.43])box(wallFixtures,[.092,2.13,.065],m.trim,[3.056,1.08,z],{cast:false});
   sphere(wallFixtures,.04,m.brass,[3.04,1.04,1.69]);
@@ -67,7 +71,11 @@ export function buildInteractionProps(scene){
     root,wallFixtures,items:INTERACTIONS,
     update(state,focusedId=null){
       phoneGlow.color.set(state.helpCalled?'#86d3aa':'#ffb366');
-      board.visible=state.doorSecured;board2.visible=state.doorSecured;
+      board.visible=state.doorSecured&&!state.enemyEntered;
+      board2.visible=state.doorSecured&&!state.enemyEntered;
+      // Exterior entry is scripted; this is the visible breach, not a
+      // traversable door opening in the current cutaway wall geometry.
+      doorHinge.rotation.y=state.enemyEntered?-.95:0;
       lever.rotation.z=state.breakerOn?0:Math.PI/2;
       indicatorMat.color.set(state.breakerOn?'#92e3a5':'#d2665a');
       entryGlow.intensity=state.enemyEntered?0:.20;
