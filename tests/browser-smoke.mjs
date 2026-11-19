@@ -18,7 +18,8 @@ try{
     viewport:{width:1280,height:720},
     deviceScaleFactor:1
   });
-  page.on('pageerror',error=>errors.push(error.stack||error.message));
+  page.on('pageerror',error=>{errors.push(error.stack||error.message);console.log('BROWSER PAGE ERROR:',error.stack||error.message);});
+  page.on('console',message=>{if(message.type()==='error')console.log('BROWSER CONSOLE ERROR:',message.text());});
   await page.goto(url,{waitUntil:'load',timeout:20000});
   const banner=page.locator('#error');
   await page.waitForFunction(()=>document.querySelector('#intruder-status')?.textContent.includes('loaded')&&
@@ -33,7 +34,15 @@ try{
   assert.match(start,/^0[01]:[0-5][0-9]$/,'timer incorrectly formatted');
   await page.waitForTimeout(1250);
   const next=await page.locator('#night-clock').innerText();
-  assert.notEqual(next,start,'survival timer never started');
+  if(next===start){
+    const diagnostic=await page.evaluate(()=>({
+      appClasses:document.querySelector('#app').className,
+      mode:document.querySelector('#mode-status')?.textContent,
+      hud:document.querySelector('#night-hud')?.textContent,
+      error:document.querySelector('#error')?.textContent
+    }));
+    throw new Error('Survival timer never started. Diagnostics: '+JSON.stringify(diagnostic)+' Browser errors: '+JSON.stringify(errors));
+  }
   await page.keyboard.press('p');
   assert.match(await page.locator('#quality-play').innerText(),/CINEMATIC/);
   await page.screenshot({path:'artifacts/survival-fps.png'});
