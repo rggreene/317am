@@ -107,6 +107,15 @@ export class NightAudio{
     // Short low warning under the room tone, not a jump-scare sting.
     this.tone(122,.23,.028,69);
   }
+  doorListen(){
+    // Small latch tick, followed by room tone: the silence does the work.
+    this.tone(215,.07,.009,165);
+    this.noiseBurst(320,.12,.007);
+  }
+  doorRattle(){
+    this.noiseBurst(260,.35,.022);
+    this.tone(98,.29,.023,57);
+  }
   miss(){this.tone(93,.19,.022,52);}
   door(){this.tone(108,.45,.11,38);}
   call(){this.tone(440,.16,.03,660);}
