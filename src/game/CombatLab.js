@@ -1,24 +1,30 @@
 import * as THREE from 'three';
 import {WeaponRig} from './WeaponRig.js';
+import {ImpactAudio} from '../audio/ImpactAudio.js';
+import {dampedSpring} from './ImpactQuality.js';
 import {isMeleeHit,moveWithCollision} from './CombatMath.js';
 
 const PLAYER_HEIGHT=1.64;
-export class CombatLab {
-  constructor({view,canvas,root,onHit=()=>{},onEnter=()=>{}}){
-    this.view=view;this.canvas=canvas;this.root=root;this.onHit=onHit;this.onEnter=onEnter;
+const MELEE_REACH=1.55;
+const MELEE_FACING=.84;
+
+export class CombatLab{
+  constructor({view,canvas,root,onHit=()=>{},onEnter=()=>{},getTarget=()=>new THREE.Vector3(.28,1.43,-.38)}){
+    this.view=view;this.canvas=canvas;this.root=root;
+    this.onHit=onHit;this.onEnter=onEnter;this.getTarget=getTarget;
     this.active=false;this.locked=false;
     this.keys=new Set();
-    this.yaw=-0.10;this.pitch=-0.085;this.walkClock=0;this.hitCount=0;
-    this.flashTime=0;this.statusTime=0;
-    this.target=new THREE.Vector3(.28,1.43,-.38);
+    this.yaw=-.10;this.pitch=-.085;this.walkClock=0;this.hitCount=0;
+    this.flashTime=0;this.statusTime=0;this.markerTime=0;
     this.direction=new THREE.Vector3();
+    this.audio=new ImpactAudio();
+    this.cameraKick={value:0,velocity:0};
     this.weapon=new WeaponRig(view.camera,()=>this.applyImpact());
-    view.scene.add(view.camera); // Camera children (arms and glTF prop) must be in the scene graph.
+    view.scene.add(view.camera);
 
     window.addEventListener('keydown',event=>{
       if(event.code==='KeyV'&&!event.repeat&&!event.ctrlKey&&!event.metaKey){
-        this.toggleMode();
-        event.preventDefault();
+        this.toggleMode();event.preventDefault();
       }
       if(this.active)this.keys.add(event.code);
     });
@@ -40,23 +46,19 @@ export class CombatLab {
       if(!this.active||event.button!==0)return;
       event.preventDefault();
       if(!this.locked){
-        try{const promise=canvas.requestPointerLock?.();promise?.catch?.(()=>this.setFeedback('MOUSE LOCK WAS BLOCKED'));}
-        catch{this.setFeedback('CLICK THE SCENE TO CAPTURE MOUSE');}
+        try{
+          const pending=canvas.requestPointerLock?.();
+          pending?.catch?.(()=>this.setFeedback('MOUSE CAPTURE BLOCKED · CLICK SCENE AGAIN'));
+        }catch(error){this.setFeedback('CLICK SCENE TO CAPTURE THE MOUSE');}
         return;
       }
-      if(this.weapon.swing())this.sound('swing');
-      else if(!this.weapon.assetLoaded)this.setFeedback('WEAPON IS STILL LOADING');
+      if(this.weapon.swing())this.audio.swing();
+      else if(!this.weapon.assetLoaded)this.setFeedback('FRYING PAN IS STILL LOADING');
     });
-    document.querySelector('#play-mode')?.addEventListener('click',()=>{
-      this.toggleMode();
-    });
+    document.querySelector('#play-mode')?.addEventListener('click',()=>this.toggleMode());
     this.updateStatus();
   }
-
-  toggleMode(){
-    if(this.active)this.exit();
-    else this.enter();
-  }
+  toggleMode(){this.active?this.exit():this.enter();}
   enter(){
     if(this.active)return;
     this.onEnter();
@@ -71,8 +73,8 @@ export class CombatLab {
     this.keys.clear();
     this.active=true;
     this.yaw=-.10;this.pitch=-.085;this.walkClock=0;
-    camera.fov=72;
-    camera.updateProjectionMatrix();
+    this.cameraKick={value:0,velocity:0};
+    camera.fov=72;camera.updateProjectionMatrix();
     camera.position.set(.05,PLAYER_HEIGHT,1.70);
     camera.rotation.order='YXZ';
     camera.rotation.set(this.pitch,this.yaw,0);
@@ -91,60 +93,46 @@ export class CombatLab {
     camera.quaternion.copy(this.orbitState.quaternion);
     camera.fov=this.orbitState.fov;camera.updateProjectionMatrix();
     controls.target.copy(this.orbitState.target);
-    controls.enabled=true;
-    controls.update();
-    this.root.classList.remove('fps-mode','impact','miss');
+    controls.enabled=true;controls.update();
+    this.root.classList.remove('fps-mode','impact','miss','hit-confirm');
     this.updateStatus();
   }
   updateStatus(){
     const mode=document.querySelector('#mode-status');
-    if(mode)mode.textContent=this.active?(this.locked?'PRACTICE MODE · PAN READY':'PRACTICE MODE · CLICK TO CAPTURE'):'ORBIT LAB · PRESS V TO PLAY';
-    const play=document.querySelector('#play-mode');
-    if(play)play.textContent=this.active?'RETURN TO ORBIT  [V]':'ENTER FIRST PERSON  [V]';
+    if(mode)mode.textContent=this.active?
+      (this.locked?'PRACTICE MODE · READY':'PRACTICE MODE · CLICK TO CAPTURE'):
+      'ORBIT LAB · PRESS V TO PLAY';
+    const button=document.querySelector('#play-mode');
+    if(button)button.textContent=this.active?'RETURN TO ORBIT  [V]':'ENTER FIRST PERSON  [V]';
   }
   setFeedback(text){
     const node=document.querySelector('#combat-feedback');
     if(node)node.textContent=text;
-    this.statusTime=1.55;
+    this.statusTime=1.4;
   }
-  sound(kind){
-    const AudioContext=window.AudioContext||window.webkitAudioContext;
-    if(!AudioContext)return;
-    try{
-      if(!this.audio)this.audio=new AudioContext();
-      if(this.audio.state==='suspended')void this.audio.resume();
-      const time=this.audio.currentTime;
-      const osc=this.audio.createOscillator(),gain=this.audio.createGain();
-      osc.type=kind==='hit'?'triangle':'sawtooth';
-      const start=kind==='hit'?145:360;
-      osc.frequency.setValueAtTime(start,time);
-      osc.frequency.exponentialRampToValueAtTime(kind==='hit'?48:110,time+(kind==='hit'?.15:.11));
-      gain.gain.setValueAtTime(.0001,time);
-      gain.gain.exponentialRampToValueAtTime(kind==='hit'?.055:.021,time+.012);
-      gain.gain.exponentialRampToValueAtTime(.0001,time+(kind==='hit'?.17:.13));
-      osc.connect(gain);gain.connect(this.audio.destination);
-      osc.start(time);osc.stop(time+.2);
-    }catch(error){console.warn('Combat sound unavailable',error);}
-  }
-
   applyImpact(){
-    this.view.camera.getWorldDirection(this.direction);
-    const hit=isMeleeHit(this.view.camera.position,this.direction,this.target);
+    const camera=this.view.camera;
+    camera.getWorldDirection(this.direction);
+    const target=this.getTarget();
+    const hit=isMeleeHit(camera.position,this.direction,target,MELEE_REACH,MELEE_FACING);
+    this.weapon.contact(hit);
+    this.root.classList.remove('impact','miss','hit-confirm');
     if(hit){
       this.hitCount++;
-      document.querySelector('#hit-count').textContent=String(this.hitCount);
-      this.root.classList.add('impact');
-      this.flashTime=.23;
-      this.setFeedback('SOLID HIT · INTRUDER STAGGERS');
-      this.onHit();
-      this.sound('hit');
+      const count=document.querySelector('#hit-count');
+      if(count)count.textContent=String(this.hitCount);
+      this.root.classList.add('impact','hit-confirm');
+      this.flashTime=.13;this.markerTime=.21;
+      this.cameraKick.velocity+=.12;
+      this.setFeedback('CONTACT · INTRUDER RECOILS');
+      this.onHit({attacker:{x:camera.position.x,z:camera.position.z},target});
+      this.audio.impact();
     }else{
       this.root.classList.add('miss');
-      this.flashTime=.16;
-      this.setFeedback('MISSED · GET CLOSER AND FACE THE INTRUDER');
+      this.flashTime=.10;
+      this.setFeedback('MISSED · STEP CLOSER AND FACE THE TARGET');
     }
   }
-
   update(dt){
     if(!this.active)return;
     const camera=this.view.camera;
@@ -155,19 +143,29 @@ export class CombatLab {
     const speed=this.keys.has('ShiftLeft')?2.9:1.75;
     const mx=(-Math.sin(this.yaw)*forward+Math.cos(this.yaw)*strafe)/mag*speed*dt;
     const mz=(-Math.cos(this.yaw)*forward-Math.sin(this.yaw)*strafe)/mag*speed*dt;
-    const position=moveWithCollision(camera.position.x,camera.position.z,mx,mz);
-    camera.position.x=position.x;camera.position.z=position.z;
+    const next=moveWithCollision(camera.position.x,camera.position.z,mx,mz);
+    camera.position.x=next.x;camera.position.z=next.z;
     if(moving)this.walkClock+=dt*(this.keys.has('ShiftLeft')?13:9);
-    camera.position.y=PLAYER_HEIGHT+(moving?Math.sin(this.walkClock)*.014:Math.sin(performance.now()*.0018)*.004);
-    camera.rotation.order='YXZ';camera.rotation.set(this.pitch,this.yaw,0);
+    camera.position.y=PLAYER_HEIGHT+
+      (moving?Math.sin(this.walkClock)*.012:Math.sin(performance.now()*.0018)*.003);
+    this.cameraKick=dampedSpring(this.cameraKick.value,this.cameraKick.velocity,dt,23);
+    camera.rotation.order='YXZ';
+    camera.rotation.set(this.pitch+this.cameraKick.value,this.yaw,0);
     this.weapon.update(dt,moving);
     if(this.flashTime>0){
-      this.flashTime-=dt;
-      if(this.flashTime<=0)this.root.classList.remove('impact','miss');
+      this.flashTime=Math.max(0,this.flashTime-dt);
+      if(!this.flashTime)this.root.classList.remove('impact','miss');
+    }
+    if(this.markerTime>0){
+      this.markerTime=Math.max(0,this.markerTime-dt);
+      if(!this.markerTime)this.root.classList.remove('hit-confirm');
     }
     if(this.statusTime>0){
-      this.statusTime-=dt;
-      if(this.statusTime<=0&&document.querySelector('#combat-feedback'))document.querySelector('#combat-feedback').textContent='LEFT CLICK · SWING THE PAN';
+      this.statusTime=Math.max(0,this.statusTime-dt);
+      if(!this.statusTime){
+        const text=document.querySelector('#combat-feedback');
+        if(text)text.textContent='LEFT CLICK · SWING THE PAN';
+      }
     }
   }
 }

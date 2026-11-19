@@ -53,6 +53,16 @@ Run `npm run check` for JavaScript syntax checks. Production build output is `di
 - Math behavior is covered by `npm run test:combat`; syntax and production build by GitHub Actions.
 - The original playable v0.4 Nightfall remains on `main` and is not replaced by this lab.
 
+## Milestone 5: impact quality pass
+
+- **Direction-aware recoil:** the actor slides briefly away from the player and leans about a hip pivot; response is spring-damped back toward the base position. The stagger GLB clip still plays.
+- **Handle-attached grip:** two glove proxies now stay attached to the pan handle and the sleeves connect to their wrists (still not authored/skinned hand art).
+- **Hitstop and camera response:** a 45 ms pause affects only the weapon animation; the rest of the game and render loop continue. A small impulse and contact marker add punctuation.
+- **Less forgiving hit checks:** the pan needs to connect within approximately 1.55 m and a narrower facing cone. There is no health, damage, injury, or combat AI yet.
+- **Layered synthetic sound:** quieter air movement on swing, soft thud and a short metallic resonance on contact. Audio starts only after browser input.
+- Pure impact quality tests: `npm run test:quality`; all checks run in GitHub Actions.
+- Presentation polish, **not** a finished melee system. GPU/browser visual playtesting is still needed.
+
 ## Not yet implemented
 
 - The original full gameplay loop (scavenging, enemy AI, phone, barricade, first aid, health/damage, win/loss state). First-person movement and a limited melee feedback test are in this visual sandbox.
@@ -61,7 +71,7 @@ Run `npm run check` for JavaScript syntax checks. Production build output is `di
 
 ## Next milestone
 
-1. Playtest hand/weapon scale and hit feedback in an actual GPU-backed browser; refine camera and action timing.
+1. Playtest grip, intruder lean, contact audio, camera and hit marker on a GPU-backed desktop browser.
 2. Introduce authored Blender character and hands, with adjusted first-person grip and skeletal animation.
 3. Connect original enemy navigation, item interactions, phone and survival loop to the Three.js renderer.
 4. Run real-device performance and gameplay-parity checks before merging into `main`.

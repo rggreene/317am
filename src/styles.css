@@ -47,3 +47,18 @@ kbd{display:inline-flex;justify-content:center;min-width:19px;padding:3px 6px;ma
  .hit-counter{right:14px;bottom:65px}
  #combat-feedback{font-size:10px;max-width:85%;white-space:normal}
 }
+
+/* Milestone 5: small, restrained contact acknowledgment, no whole-screen camera shake. */
+#crosshair::after{
+  content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
+  border:2px solid #ffdcab;border-radius:2px;
+  transform:translate(-50%,-50%) rotate(45deg) scale(.65);
+  opacity:0;transition:opacity 65ms ease,transform 100ms ease;
+  box-shadow:0 0 13px #d9954f80;
+}
+.hit-confirm #crosshair::after{opacity:1;transform:translate(-50%,-50%) rotate(45deg) scale(1)}
+.impact #hit-overlay{opacity:.27}
+.miss #hit-overlay{opacity:.075}
+@media (prefers-reduced-motion:reduce){
+  #crosshair::after,#hit-overlay{transition:none}
+}

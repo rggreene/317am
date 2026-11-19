@@ -70,8 +70,10 @@ export class Game {
         const label=document.querySelector('#inspect-mode');
         if(label)label.textContent='APARTMENT OVERVIEW · E PAN · R INTRUDER';
       },
-      onHit:()=>{
-        if(this.riggedIntruder)this.riggedIntruder.setClip('stagger');
+      getTarget:()=>this.riggedIntruder?.getTarget() ?? new THREE.Vector3(.28,1.43,-.38),
+      onHit:({attacker})=>{
+        if(this.riggedIntruder)this.riggedIntruder.reactToImpact(attacker);
+        else this.intruder.animate(this.elapsed);
       }
     });
     this.handleKeyDown=(e)=>{
