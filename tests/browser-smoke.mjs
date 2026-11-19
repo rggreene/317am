@@ -27,6 +27,12 @@ try{
     null,{timeout:24000});
   assert.equal(await banner.isVisible(),false,'WebGL startup failed');
   await page.screenshot({path:'artifacts/apartment-orbit.png'});
+  // Inspect the bone-driven art directly as well as the full apartment.
+  await page.keyboard.press('r');
+  await page.waitForTimeout(1250);
+  await page.screenshot({path:'artifacts/intruder-closeup.png'});
+  await page.keyboard.press('r');
+  await page.waitForTimeout(850);
   await page.keyboard.press('v');
   await page.waitForFunction(()=>document.querySelector('#app')?.classList.contains('fps-mode'));
   assert.equal(await page.locator('#night-end').isVisible(),false,'win/loss modal showed at game start');

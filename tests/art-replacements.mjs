@@ -7,7 +7,7 @@ const slots=new Map([['room_sofa_2seat',slot]]);
 const path='assets/models/furniture/demo_sofa.glb';
 const entry={id:'room_sofa_2seat',status:'in_review',model_glb:path,target_dimensions_m:[1,.5,.6]};
 const manifest={assets:[entry]};
-const urls={'../../'+path:'/demo_sofa.glb'};
+const urls={['../../'+path]:'/demo_sofa.glb'};
 assert.equal(availableArtUrls({assets:[{...entry,status:'planned'}]},urls,slots).length,0);
 const warnings=[];
 const missing=await applyArtReplacements({slots,manifest,urls:{},
