@@ -148,3 +148,7 @@ The media console and television are now separate compact glTF models generated 
 - Generate the model reproducibly with `python3 -m pip install -r requirements-art.txt` then `npm run assets:intruder-v2`.
 - On a machine with Blender installed, import the GLB as editable Blender source using `blender -b --python scripts/blender/import_intruder_v2.py`.
 - A full-quality hand-authored retopology, better face, and weight paint remain the next art pass. No screenshot in the concept board is proof of in-engine photorealism.
+
+### Candidate asset stability policy
+
+The verified `char_intruder_v02.glb` is committed to the private branch and is the canonical reviewed prototype binary. CI validates that committed asset directly and **does not rewrite the repository**. The Python source can regenerate an equivalent model when required, but byte-identical files are not promised on different native Python/NumPy/Pillow platforms; a new export requires a new review before replacing the committed GLB.
