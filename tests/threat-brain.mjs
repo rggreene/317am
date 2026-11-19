@@ -112,3 +112,16 @@ assert.equal(patrolStep.mode,'search');
 assert.equal(patrolStep.goal,null,'intruder should stop at a search point');
 for(let i=0;i<8;i++)patrolStep=tickThreat(patrol,{dt:.1,enemy:patrolGoal,player:absent});
 assert.notDeepEqual(patrolStep.goal,patrolGoal,'intruder should move on after listening');
+
+// A closed door between combatants must block both telegraph and damage.
+const solidDoor=[{minX:.18,maxX:.32,minZ:-.5,maxZ:.5}];
+const doorEnemy={x:0,z:0},doorPlayer={x:.55,z:0};
+const behindDoor=createThreatBrain();
+let blockedAttack=tickThreat(behindDoor,{dt:.05,enemy:doorEnemy,
+  player:doorPlayer,blockers:solidDoor});
+assert.notEqual(blockedAttack.mode,'windup','cannot begin a strike through a door');
+const interruptedByDoor=createThreatBrain();
+tickThreat(interruptedByDoor,{dt:.05,enemy:doorEnemy,player:doorPlayer,blockers:[]});
+for(let i=0;i<17;i++)blockedAttack=tickThreat(interruptedByDoor,{dt:.05,
+  enemy:doorEnemy,player:doorPlayer,blockers:solidDoor});
+assert.equal(blockedAttack.strike,false,'closing a door during windup blocks contact');
