@@ -44,6 +44,16 @@ export class Game {
     this.lamp=new THREE.PointLight('#ffc581',17,5,2);
     this.lamp.position.set(-2.93,1.27,-1.27);
     scene.add(this.lamp);
+    // Hero-area practicals; restrained falloff keeps the far side of the room tense.
+    this.livingLamp=new THREE.PointLight('#ffc995',9.2,4.2,2);
+    this.livingLamp.position.set(2.80,1.54,2.08);
+    this.livingLamp.castShadow=true;
+    this.livingLamp.shadow.mapSize.set(512,512);
+    this.livingLamp.shadow.bias=-.001;
+    scene.add(this.livingLamp);
+    this.windowBounce=new THREE.PointLight('#8aaccb',3.7,3.0,2);
+    this.windowBounce.position.set(1.24,2.2,-2.28);
+    scene.add(this.windowBounce);
     this.tv=new THREE.PointLight('#78badc',6,3.8,2);
     this.tv.position.set(1.6,1.15,-2.0);
     scene.add(this.tv);
@@ -176,8 +186,10 @@ export class Game {
     this.ambient.intensity=this.moody?0.65:1.65;
     this.moon.intensity=this.moody?1.35:2.1;
     this.lamp.intensity=this.moody?17:8;
-    this.tv.intensity=this.moody?6:2;
-    this.view.renderer.toneMappingExposure=this.moody?1.25:1.5;
+    this.tv.intensity=this.moody?4.4:1.7;
+    this.livingLamp.intensity=this.moody?9.2:4.8;
+    this.windowBounce.intensity=this.moody?3.7:2.1;
+    this.view.renderer.toneMappingExposure=this.moody?1.12:1.34;
     this.view.scene.fog.density=this.moody?0.024:0.012;
   }
   frame=(now)=>{

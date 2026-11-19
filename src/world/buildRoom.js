@@ -171,6 +171,15 @@ export function buildRoom(){
     leaf.scale.set(1,.35,.65);
   }
 
+  // Slender standing practical next to the sofa, not in the player corridor.
+  c(.145,.155,.045,m.chrome,[2.81,.04,2.08]);
+  c(.022,.022,1.19,m.chrome,[2.81,.655,2.08]);
+  const standingShade=c(.19,.275,.29,m.lampShade,[2.81,1.41,2.08]);
+  standingShade.castShadow=true;
+  // A small baseboard outlet + accessible dangling cable.
+  b([.04,.09,.11],m.trim,[3.13,.19,1.81],{cast:false});
+  b([.035,.15,.015],m.black,[3.10,.15,1.84],{cast:false});
+
   const intruder=createIntruder();
   root.add(intruder.group);
 

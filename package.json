@@ -7,14 +7,15 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "check": "node --check src/main.js && node --check src/game/Game.js && node --check src/world/buildRoom.js && node --check src/actors/createIntruder.js && node --check src/rendering/createRenderer.js && node --check src/assets/loadGLB.js && node --check src/actors/IntruderController.js && node --check scripts/generate-intruder.mjs && node scripts/check-glb.mjs && node scripts/check-intruder.mjs && node --check src/game/CombatLab.js && node --check src/game/WeaponRig.js && node --check src/game/CombatMath.js && node tests/combat-lab.mjs && node --check src/game/ImpactQuality.js && node --check src/audio/ImpactAudio.js && node tests/impact-quality.mjs",
+    "check": "node --check src/main.js && node --check src/game/Game.js && node --check src/world/buildRoom.js && node --check src/actors/createIntruder.js && node --check src/rendering/createRenderer.js && node --check src/assets/loadGLB.js && node --check src/actors/IntruderController.js && node --check scripts/generate-intruder.mjs && node scripts/check-glb.mjs && node scripts/check-intruder.mjs && node --check src/game/CombatLab.js && node --check src/game/WeaponRig.js && node --check src/game/CombatMath.js && node tests/combat-lab.mjs && node --check src/game/ImpactQuality.js && node --check src/audio/ImpactAudio.js && node tests/impact-quality.mjs && node tests/environment-smoke.mjs",
     "assets:pan": "node scripts/generate-pan.mjs",
     "check:assets": "node scripts/check-glb.mjs && node scripts/check-intruder.mjs && node tests/load-rig.mjs",
     "assets:intruder": "node scripts/generate-intruder.mjs",
     "check:intruder": "node scripts/check-intruder.mjs",
     "test:rig": "node tests/load-rig.mjs",
     "test:combat": "node tests/combat-lab.mjs",
-    "test:quality": "node tests/impact-quality.mjs"
+    "test:quality": "node tests/impact-quality.mjs",
+    "test:environment": "node tests/environment-smoke.mjs"
   },
   "dependencies": {
     "three": "0.179.1"

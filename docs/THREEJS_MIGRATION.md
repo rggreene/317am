@@ -63,6 +63,16 @@ Run `npm run check` for JavaScript syntax checks. Production build output is `di
 - Pure impact quality tests: `npm run test:quality`; all checks run in GitHub Actions.
 - Presentation polish, **not** a finished melee system. GPU/browser visual playtesting is still needed.
 
+## Milestone 6: environment hero-area overhaul
+
+- Living room and visible hallway receive new modular furnishings: rounded upholstered sofa, separated cushions, blanket, layered rug, coffee table with legs, entertainment console, realistic framed windows and trim.
+- Shared material library adds deterministic browser-generated tile textures for laminate wood, fabric and wall paint. These are **procedural albedo texture details**, not photographed high-resolution PBR maps or full normal/roughness maps.
+- Details include mug, papers, remote, books, footwear, picture frames, houseplant, switches and vents. They remain decorative in this visual lab.
+- Lighting now includes a visible warm living-room floor lamp, cool moonlit/window spill and subdued TV glow; G still toggles the lighting balance.
+- The existing first-person spawn, frying-pan asset, intruder demo and major collision envelopes are preserved. Collision remains approximate rather than matching every new decorative mesh.
+- `tests/environment-smoke.mjs` imports the room with a tiny fake canvas, verifies the hero-area geometry/materials and checks scene assembly under Node (no actual WebGL rendering).
+- The environment is a **higher-quality procedural prototype**, not yet a fully authored photorealistic Blender environment. Visual validation on the user's GPU remains necessary.
+
 ## Not yet implemented
 
 - The original full gameplay loop (scavenging, enemy AI, phone, barricade, first aid, health/damage, win/loss state). First-person movement and a limited melee feedback test are in this visual sandbox.
@@ -71,7 +81,7 @@ Run `npm run check` for JavaScript syntax checks. Production build output is `di
 
 ## Next milestone
 
-1. Playtest grip, intruder lean, contact audio, camera and hit marker on a GPU-backed desktop browser.
+1. Playtest the new hero-area geometry, window light, upholstery and first-person sightlines on a GPU-backed desktop browser.
 2. Introduce authored Blender character and hands, with adjusted first-person grip and skeletal animation.
 3. Connect original enemy navigation, item interactions, phone and survival loop to the Three.js renderer.
 4. Run real-device performance and gameplay-parity checks before merging into `main`.
