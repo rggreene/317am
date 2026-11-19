@@ -36,6 +36,6 @@ Keep the existing single-file WebGL 2 game playable on `main`. Before refactorin
 A build must run in desktop Chrome/Edge, preserve win and lose paths, and avoid critical browser console/WebGL errors. Test both graphics modes before merging.
 
 
-## Next: art revision workstream (vertical-slice branch)
+## Art revision workstream — in progress (vertical-slice branch)
 
-See [Art Revision Plan](ART_REVISION_PLAN.md), [Art Acceptance Checklist](ART_ACCEPTANCE_CHECKLIST.md) and the [asset manifest](../assets/asset-manifest.json). The next gates are reusable GLB import/fallback, hero living-room furniture, bedroom/entry, intruder rig and first-person hands, then integrated art/performance review. **This section records planned work only; models are not yet delivered.**
+See [Art Revision Plan](ART_REVISION_PLAN.md), [Art Acceptance Checklist](ART_ACCEPTANCE_CHECKLIST.md) and the [asset manifest](../assets/asset-manifest.json). The next gates are reusable GLB import/fallback, hero living-room furniture, bedroom/entry, intruder rig and first-person hands, then integrated art/performance review. **In progress:** six furniture GLBs and their guarded import path are implemented and under visual review; authored character and first-person hand GLBs are still pending.

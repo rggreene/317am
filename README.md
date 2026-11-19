@@ -6,14 +6,14 @@ A browser-based survival horror game experiment, now built with **Three.js + Vit
 
 ## Art revision production package
 
-The next workstream is **a coordinated furniture + character art replacement**. Its design and engineering gates are documented in:
+The current art workstream is **a coordinated furniture + character art replacement**. Its design and engineering gates are documented in:
 
 - [Art Revision Plan](docs/ART_REVISION_PLAN.md) — style guide, current scene placement, per-asset budgets, Blender/GLB contract and milestone gates.
 - [Art Acceptance Checklist](docs/ART_ACCEPTANCE_CHECKLIST.md) — review criteria for sofa, bed, entry, intruder and first-person hands.
 - [Asset Manifest](assets/asset-manifest.json) — the planned replacement GLBs, source locations and status for each asset.
 - [Blender/Three.js Pipeline](docs/ASSET_PIPELINE.md) — export conventions and safe fallback policy.
 
-**Planning status:** no replacement GLBs or Blender sources have been created merely by adding these documents. The existing procedural meshes remain active, and the playable build is unchanged. Run `npm run test:art-manifest` to validate the planning registry.
+**Current status:** six reproducibly generated furniture GLBs now load into the actual game, with scale validation and automatic procedural fallback. The intruder and player hands also have improved procedural art, but **no Blender-authored final models have shipped**. All six imported furniture assets remain `in_review`. Run `npm run check:assets` for the geometry tests or `npm run assets:hero-furniture` to regenerate the files.
 
 ## Play locally
 
@@ -109,9 +109,9 @@ The breaker now affects detection: a lit room exposes a stationary player at a s
 
 ## Authored procedural GLB art pass (first two assets)
 
-The sofa and coffee table now ship as **actual glTF 2.0 binary models** rather than only geometry created in the browser. Source: `scripts/generate-hero-furniture.mjs`. Rebuild with `npm run assets:hero-furniture` and validate with `npm run test:hero-glb`.
+Six hero pieces now ship as **actual glTF 2.0 binary models** rather than only geometry created in the browser. Source: `scripts/generate-hero-furniture.mjs`. Rebuild with `npm run assets:hero-furniture` and validate with `npm run test:hero-glb`.
 
-These are **procedurally authored/exported meshes**, not Blender sculpted/PBR-textured final furniture. The manifest lists them as **in_review**. On startup the alpha loads the two GLBs, checks their dimensions and swaps them into the existing art slots. If an import fails, the previous procedural model remains visible, keeping the survival game playable. Final artist-authored models are still the long-term target.
+These are **procedurally authored/exported meshes**, not Blender sculpted/PBR-textured final furniture. The manifest lists them as **in_review**. On startup the alpha loads the six GLBs, checks their dimensions and swaps them into the existing art slots. If an import fails, the previous procedural model remains visible, keeping the survival game playable. Final artist-authored models are still the long-term target.
 
 ## Imported furniture PBR microdetail
 
