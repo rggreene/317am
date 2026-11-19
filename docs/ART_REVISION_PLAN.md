@@ -205,3 +205,13 @@ Integration contract:
 - Screenshots are compared at identical viewpoints; the delta is obvious without an explanation.
 
 **Out of scope for this art revision:** new playable rooms, multiplayer, gore, full v0.4 inventory parity, cutscenes, cinematic mocap production or public hosting.
+
+## Implemented provisional art pass (procedural, not yet Blender/GLB)
+
+The current `feature/vertical-slice-alpha` revision now has modular Three.js art slots for the sofa, coffee table, rug, bed, dresser, media console and television. The first-person glove meshes have shaped fingers/sleeves, and the intruder retains its existing GLB animation clips while a bone-following human silhouette and dark textured costume replace the original visible prototype shell.
+
+**Scope honesty:** these are **real in-game visual improvements**, but still handcrafted procedural Three.js geometries. No new Blender-authored GLB files have shipped from the 22-item manifest. Those entries remain `planned` until genuinely exported and reviewed.
+
+The new `src/assets/ArtReplacements.js` code provides a safe replacement path: when a manifest entry is marked `in_review` or `active` and its GLB is bundled, the model is checked for scale, then installed into its art slot. Missing, unparseable or unexpectedly sized models leave the working procedural furniture visible. The loader is opt-in: nothing is silently replaced by a filename alone. `tests/art-replacements.mjs` validates the fallback/restore contract.
+
+Next art tasks are texture-atlas improvements, interior material response, and author-quality Blender exports for the first P0 furniture assets.

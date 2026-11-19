@@ -6,6 +6,15 @@ import {createRiggedIntruder,INTRUDER_CLIPS} from '../actors/IntruderController.
 import {CombatLab} from './CombatLab.js';
 import {NightDirector} from './NightDirector.js';
 import {applyQualityPreset,nextQuality} from '../rendering/QualityManager.js';
+import {loadGLB} from '../assets/loadGLB.js';
+import {applyArtReplacements} from '../assets/ArtReplacements.js';
+import artManifest from '../../assets/asset-manifest.json';
+
+// Static Vite glob enumerates *only* committed future GLBs. Manifest entries
+// remain 'planned' until real exported assets pass art review.
+const optionalArtUrls=import.meta.glob('../../assets/models/**/*.glb',{
+  query:'?url',import:'default',eager:true
+});
 
 export class Game {
   constructor({canvas,root}){
@@ -21,6 +30,7 @@ export class Game {
     const world=buildRoom();
     this.intruder=world.intruder;
     this.apartment=world.root;
+    this.artSlots=world.artSlots;
     this.environmentMotion=world.updateAmbience;
     // Right exterior wall is rendered in first person but hidden in orbit
     // so furniture, window framing and the hallway remain inspectable.
@@ -28,6 +38,7 @@ export class Game {
     if(this.cutawayWall)this.cutawayWall.visible=false;
     this.riggedIntruder=null;
     scene.add(world.root);
+    void this.setupArtReplacements();
     void this.setupIntruder();
     this.panGroup=null;
     this.panAsset=null;
@@ -136,6 +147,22 @@ export class Game {
     };
     window.addEventListener('keydown',this.handleKeyDown);
     this.lastFrame=performance.now();
+  }
+  async setupArtReplacements(){
+    try{
+      const result=await applyArtReplacements({
+        slots:this.artSlots,
+        manifest:artManifest,
+        urls:optionalArtUrls,
+        loadModel:loadGLB,
+        onWarning:message=>console.warn('[Optional art fallback]',message)
+      });
+      const imported=result.filter(x=>x.status==='replaced');
+      if(imported.length)console.info('Imported reviewed art models:',imported.map(x=>x.id));
+    }catch(error){
+      // Optional art must never prevent the playable survival loop from loading.
+      console.warn('Art replacement system unavailable, keeping modular geometry',error);
+    }
   }
   async setupIntruder(){
     try{
