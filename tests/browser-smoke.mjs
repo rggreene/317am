@@ -34,6 +34,8 @@ try{
   assert.ok(loadedHeroArt?.includes('room_coffee_table'), 'table GLB did not replace fallback');
   assert.ok(loadedHeroArt?.includes('room_bed_dressed'), 'bed GLB did not replace fallback');
   assert.ok(loadedHeroArt?.includes('room_dresser_phone'), 'dresser GLB did not replace fallback');
+  assert.ok(loadedHeroArt?.includes('room_media_console'), 'media cabinet GLB did not replace fallback');
+  assert.ok(loadedHeroArt?.includes('prop_television'), 'television GLB did not replace fallback');
   await page.screenshot({path:'artifacts/apartment-orbit.png'});
   // Capture honest unobstructed art reviews in addition to the HUD snapshots.
   await page.keyboard.press('h');

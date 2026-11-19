@@ -1,4 +1,4 @@
-// Reproducible, asset-friendly GLB generator; outputs four committed furniture assets.
+// Reproducible, asset-friendly GLB generator; outputs six committed furniture assets.
 // Run: npm run assets:hero-furniture. Requires Node 22+ only.
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {dirname} from 'node:path';
@@ -269,7 +269,49 @@ function buildAssets(){
     dresser.box(0,[x,.61,.178],[.015,1.0,.017]);
   const dresserAsset=outputGLB(dresser.groups,dresserMaterials,{name:'Art Four Drawer Dresser v01',
     description:'Hardwood case, recessed drawer reveals and bronzed pulls'});
+
+  const cabinetMaterials=[
+    ["Walnut media cabinet",[.37,.22,.15,1],.76,0],
+    ["Shadowed cabinet carcass",[.19,.12,.09,1],.87,0],
+    ["Tarnished brass cabinet pulls",[.42,.32,.20,1],.50,.58]
+  ];
+  const cabinet=meshBuilder(cabinetMaterials);
+  for(const x of [-.70,.70])for(const z of [-.17,.17]){
+    cabinet.cylinder(1,[x,.067,z],.034,.047,.134,10);
+  }
+  cabinet.capsuleBox(1,[0,.26,0],[1.64,.30,.45],18,12,.32);
+  cabinet.capsuleBox(0,[0,.429,0],[1.68,.038,.48],22,12,.25);
+  for(const x of [-.52,0,.52]){
+    cabinet.capsuleBox(0,[x,.265,.228],[.467,.23,.019],16,10,.25);
+    cabinet.box(2,[x,.257,.243],[.19,.012,.012]);
+    cabinet.box(1,[x,.377,.23],[.46,.007,.012]);
+    for(const dx of [-.08,.08]) cabinet.cylinder(2,[x+dx,.254,.249],.009,.009,.018,8);
+  }
+  for(const x of [-.73,.73])
+    cabinet.box(1,[x,.255,.229],[.016,.24,.012]);
+  const mediaAsset=outputGLB(cabinet.groups,cabinetMaterials,{
+    name:'Art Media Cabinet v01',description:'Solid wood cabinet with three drawer fronts and metal pulls'});
+
+  const televisionMaterials=[
+    ["TV dark bezel and shell",[.067,.083,.10,1],.54,.04],
+    ["Reflected screen glass",[.16,.29,.36,1],.32,.07],
+    ["TV weighted steel stand",[.16,.18,.19,1],.51,.36]
+  ];
+  const tv=meshBuilder(televisionMaterials);
+  tv.capsuleBox(0,[0,0,0],[1.36,.79,.088],26,18,.19);
+  tv.capsuleBox(1,[0,.008,.049],[1.256,.69,.015],24,16,.15);
+  tv.box(2,[0,-.408,-.019],[.105,.08,.073]);
+  tv.capsuleBox(2,[0,-.468,-.015],[.45,.027,.19],18,10,.29);
+  for(let k=0;k<13;k++){
+    const x=-.46+k*.078;
+    tv.box(0,[x,-.364,.051],[.040,.002,.004]);
+  }
+  tv.box(1,[.33,.199,.059],[.28,.009,.003]);
+  const tvAsset=outputGLB(tv.groups,televisionMaterials,{
+    name:'Art Television v01',description:'Thin bezel and glass panel with stand and ventilation slots'});
   return [
+    {id:'room_media_console',path:'assets/models/furniture/room_media_console_v01.glb',...mediaAsset},
+    {id:'prop_television',path:'assets/models/props/prop_television_v01.glb',...tvAsset},
     {id:'room_bed_dressed',path:'assets/models/furniture/room_bed_dressed_v01.glb',...bedAsset},
     {id:'room_dresser_phone',path:'assets/models/furniture/room_dresser_phone_v01.glb',...dresserAsset},
     {id:'room_sofa_2seat',path:'assets/models/furniture/room_sofa_2seat_v01.glb',...sb},

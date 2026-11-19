@@ -120,3 +120,7 @@ The reviewed glTF furniture receives subtle deterministic procedural normal and 
 ## Bedroom GLBs
 
 The bed and four-drawer phone dresser now also export as independent runtime glTF assets, generated through the same reproducible Node script. Both are `in_review` pending on-device visual review and retain fallback geometry. The emergency phone itself remains at its original accessible gameplay anchor, independent of the furniture asset.
+
+## Entertainment-wall GLBs
+
+The media console and television are now separate compact glTF models generated from the same source script, with a visible stand, low-profile frame and cabinet drawer details. Their manifest entries remain `in_review`; like the living-room and bedroom models, they retain automatic fallback on load or dimension validation failure.
