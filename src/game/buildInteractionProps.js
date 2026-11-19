@@ -35,6 +35,13 @@ export function buildInteractionProps(scene){
   board.visible=false;
   const board2=box(wallFixtures,[.10,.17,1.09],m.darkWood,[2.991,.76,1.98],{name:'Lower barricade plank'});
   board2.visible=false;
+  // Interior passage leaf, hinged against the bedroom divider.
+  const interiorHinge=new THREE.Group();
+  interiorHinge.position.set(-.12,0,-1.12);
+  root.add(interiorHinge);
+  rounded(interiorHinge,[.08,2.02,.69],m.wood,[0,1.01,.345],.018,
+    {name:'Bedroom Passage Door'});
+  sphere(interiorHinge,.036,m.brass,[.055,1.02,.56]);
   // Surface-mounted breaker and red/green indicator.
   rounded(wallFixtures,[.08,.46,.30],m.chrome,[3.095,1.39,.38],.016,{name:'Electrical breaker'});
   const lever=box(wallFixtures,[.083,.16,.046],m.black,[3.03,1.38,.38],{name:'Breaker switch'});
@@ -69,13 +76,14 @@ export function buildInteractionProps(scene){
   scene.add(root);
   return {
     root,wallFixtures,items:INTERACTIONS,
-    update(state,focusedId=null){
+    update(state,focusedId=null,interiorDoor=null){
       phoneGlow.color.set(state.helpCalled?'#86d3aa':'#ffb366');
       board.visible=state.doorSecured&&!state.enemyEntered;
       board2.visible=state.doorSecured&&!state.enemyEntered;
       // Exterior entry is scripted; this is the visible breach, not a
       // traversable door opening in the current cutaway wall geometry.
       doorHinge.rotation.y=state.enemyEntered?-.95:0;
+      interiorHinge.rotation.y=interiorDoor?.open?1.35:0;
       lever.rotation.z=state.breakerOn?0:Math.PI/2;
       indicatorMat.color.set(state.breakerOn?'#92e3a5':'#d2665a');
       entryGlow.intensity=state.enemyEntered?0:.20;
