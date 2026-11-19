@@ -4,8 +4,8 @@ import {createNight,beginNight,tickNight,nightEvent,nightObjective,
 import {createThreatBrain,tickThreat,interruptThreat,WINDUP_SECONDS} from './ThreatBrain.js';
 import {findNavigationPath,navigateStep} from './NavGrid.js';
 import {APARTMENT_BLOCKERS} from './CombatMath.js';
-import {createDoorState,doorBlockers,doorNear,openDoor} from './DoorState.js';
-import {segmentIntersectsBox,sightClear} from '../audio/Occlusion.js';
+import {createDoorState,doorBlockers,doorNear,openDoor,doorApproach,doorBlocksRoute} from './DoorState.js';
+import {sightClear} from '../audio/Occlusion.js';
 import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
 import {panFromCamera} from '../audio/AudioSpatial.js';
@@ -257,24 +257,23 @@ export class NightDirector{
     }
     // A closed interior door interrupts the route. The intruder must reach
     // the passage and force it before continuing into the next area.
-    const doorBox=doorBlockers(this.interiorDoor)[0];
-    if(doorBox&&segmentIntersectsBox(this.enemyPosition,goal,doorBox)){
-      if(doorNear(this.enemyPosition,1.05)){
-        this.doorForceTime=1.15;
-        this.path=[];
-        this.pathAge=0;
-        this.state.message='WOOD CREAKS. SOMETHING LEANS AGAINST THE BEDROOM DOOR.';
-        this.audio.warning();
-        this.setActorPose('idle');
-        return;
-      }
+    const doorInWay=doorBlocksRoute(this.enemyPosition,goal,this.interiorDoor);
+    if(doorInWay&&doorNear(this.enemyPosition,1.05)){
+      this.doorForceTime=1.15;
+      this.path=[];
+      this.pathAge=0;
+      this.state.message='WOOD CREAKS. SOMETHING LEANS AGAINST THE BEDROOM DOOR.';
+      this.audio.warning();
+      this.setActorPose('idle');
+      return;
     }
+    const navigationGoal=doorInWay?doorApproach(this.enemyPosition):goal;
     this.setActorPose('walk');
     this.pathAge-=dt;
     if(this.pathAge<=0||this.path.length===0||
-      Math.hypot(this.path[this.path.length-1].x-goal.x,
-        this.path[this.path.length-1].z-goal.z)>.7){
-      this.path=findNavigationPath(this.enemyPosition,goal,
+      Math.hypot(this.path[this.path.length-1].x-navigationGoal.x,
+        this.path[this.path.length-1].z-navigationGoal.z)>.7){
+      this.path=findNavigationPath(this.enemyPosition,navigationGoal,
         [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)]);
       this.pathAge=REPATH_INTERVAL;
     }
