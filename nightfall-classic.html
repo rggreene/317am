@@ -647,7 +647,7 @@ return [];}
 const RESCUE_TIME=75;
 let playing=false,started=false,finished=false,remaining=RESCUE_TIME,elapsed=0,kills=0,held=null,target=null,flash=true,roomOn=true,kitchenOn=true,showMap=true,enemySpawnTimer=15,spawned=0;
 let called=false,medUsed=false,doorBraced=false,doorBroken=false,braceDelay=0,powerCut=false,powerRestored=false,blackoutAt=32,smokeTime=0,ambientTimer=9,footstepTimer=0,noCallWarning=false,noiseLevel=0,alerted=false,record=0;
-const player={x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,crouched:false,stance:1,stanceTarget:1,pace:.62,moveBlend:0,stepPhase:0};
+const player={x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,interaction:0,pendingStrike:null,impact:0,crouched:false,stance:1,stanceTarget:1,pace:.62,moveBlend:0,stepPhase:0};
 let enemies=[],keys={},audio=null,audioUnlocked=false,noticeTimer=0,noticeText='',breachFlash=0;
 let quality=1,showFPS=false;
 try{quality=localStorage.getItem('317am_graphics_v04')==='performance'?0:1}catch(_){}
@@ -667,7 +667,7 @@ function reset(){
  playing=true;finished=false;started=true;remaining=RESCUE_TIME;elapsed=0;kills=0;held=null;flash=true;roomOn=true;kitchenOn=true;showMap=true;enemySpawnTimer=15;spawned=0;enemies=[];target=null;breachFlash=0;
  called=false;medUsed=false;doorBraced=false;doorBroken=false;braceDelay=0;powerCut=false;powerRestored=false;blackoutAt=rnd(28,42);smokeTime=0;ambientTimer=9;footstepTimer=0;noCallWarning=false;noiseLevel=0;alerted=false;
  items=spawnItems.map((a,i)=>({...a,id:i,x:a.x+rnd(-.07,.07),z:a.z+rnd(-.06,.06),vx:0,vy:0,vz:0,air:false,broken:false,rot:rnd(-.6,.6),charges:a.type==='extinguisher'?4:0}));
- Object.assign(player,{x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,crouched:false,stance:1,stanceTarget:1,pace:.62,moveBlend:0,stepPhase:0});keys={};
+ Object.assign(player,{x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,interaction:0,pendingStrike:null,impact:0,crouched:false,stance:1,stanceTarget:1,pace:.62,moveBlend:0,stepPhase:0});keys={};
  $('hud').classList.add('show');$('mapWrap').style.display='block';$('itemLabel').textContent='EMPTY HANDS';$('itemName').textContent='Find something useful.';
  $('itemInfo').textContent='Everything in here might help.';$('powerFlash').style.opacity='0';$('blackout').style.opacity='1';
  $('callChip').className='mission-chip active';$('surviveChip').className='mission-chip';$('objective').textContent='Find your phone. Call for help.';
@@ -684,7 +684,16 @@ function setupAudio(){if(audioUnlocked)return;try{
 }catch(e){}}
 function beep(freq=160,len=.15,type='sine',vol=.06,slide=0){if(!audio)return;let o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.setValueAtTime(freq,audio.currentTime);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(10,freq+slide),audio.currentTime+len);g.gain.setValueAtTime(vol,audio.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+len);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+len+.01);}
 function thud(){beep(rnd(45,65),.14,'triangle',.11,-30)}
-function steps(){beep(rnd(60,92),.055,'triangle',.015,-30)}
+function steps(){beep(rnd(60,92),.055,'triangle',.012,-30)}
+// Distance attenuation and wall occlusion adapt the proven spatial audio principles to WebAudio.
+function spatialBeep(x,z,freq=90,volume=.05,length=.12){
+ const r=dist(x,z,player.x,player.z);
+ const blockedSound=!canSee(x,z,player.x,player.z);
+ const gain=volume/(1+r*r*.095)*(blockedSound?.42:1);
+ if(gain>.001)beep(freq,length,'triangle',gain,-freq*.28);
+}
+function impactSound(x,z,hit){spatialBeep(x,z,hit?112:210,hit?.13:.032,hit?.19:.08);}
+
 function startGame(){setupAudio();if(audio&&audio.state==='suspended')audio.resume();reset();$('overlay').classList.add('hidden');canvas.requestPointerLock?.();beep(115,.3,'sawtooth',.045,-75)}
 function resume(){playing=true;$('overlay').classList.add('hidden');canvas.requestPointerLock?.();}
 function showMenu(title,sub,desc,btn){$('menuTitle').innerHTML=title;$('menuSub').textContent=sub;$('menuDesc').textContent=desc;$('startBtn').textContent=btn;$('overlay').classList.remove('hidden');}
@@ -716,6 +725,7 @@ function utilityTarget(){
 function emitNoise(x,z,radius=5){noiseLevel=Math.min(100,Math.max(noiseLevel,radius*12));for(let e of enemies){if(e.dead)continue;if(dist(e.x,e.z,x,z)<radius){e.goalX=x;e.goalZ=z;e.mode='investigate';e.memory=3.5;e.pathTimer=0;}}}
 function dropHeld(){if(!held)return;held.x=player.x+Math.sin(player.yaw)*.65;held.z=player.z-Math.cos(player.yaw)*.65;held.y=.36;held.air=true;held.vx=0;held.vy=0;held.vz=0;held=null;beep(220,.07,'triangle',.025);}
 function interact(){
+ player.interaction=.36;
  let u=utilityTarget();if(u){
   if(u.kind==='phone'){called=true;remaining=RESCUE_TIME;beep(450,.08,'sine',.055,80);beep(620,.25,'triangle',.045,100);showNotice('DISPATCH: HELP IS ON THE WAY · HOLD ON',3.2);$('callChip').className='mission-chip done';$('surviveChip').className='mission-chip active';$('objective').textContent='Survive until help arrives.';emitNoise(player.x,player.z,2.6);return;}
   if(u.kind==='med'){medUsed=true;player.hp=Math.min(100,player.hp+45);beep(510,.18,'triangle',.055,180);showNotice('FIRST AID · HEALTH RESTORED',2);return;}
@@ -731,7 +741,32 @@ function interact(){
  else if(dist(player.x,player.z,-.65,.8)<1.35){if(powerCut){showNotice('NO POWER · FIND THE BREAKER',1.5);return;}kitchenOn=!kitchenOn;showNotice(kitchenOn?'KITCHEN LIGHT ON':'KITCHEN LIGHT OFF',1.5);beep(440,.06,'square',.03);}
 }
 
-function attack(){if(player.attackCooldown>0)return;emitNoise(player.x,player.z,7);player.attackCooldown=held?.type==='knife'?.35:.6;player.attack=.22;let damage=held?ITEM_TYPES[held.type].damage:6,range=held?ITEM_TYPES[held.type].reach:1.3;let found=false;for(let e of enemies){let b=aimAt(e.x,1.2,e.z);if(b.len<range&&b.dot>.71&&canSee(player.x,player.z,e.x,e.z)){e.hp-=damage;e.stun=.64;e.flash=.3;e.x+=Math.sin(player.yaw)*.3;e.z-=Math.cos(player.yaw)*.3;found=true;beep(95,.18,'sawtooth',.12,-65);showNotice('HIT · '+damage+' DAMAGE',.8);if(e.hp<=0){e.dead=true;kills++;showNotice('THREAT NEUTRALIZED',2.3);beep(345,.45,'triangle',.12,-290);}}}if(!found){beep(220,.07,'sawtooth',.028,-140);}if(held?.type==='bottle'&&found){held.broken=true;held=null;showNotice('THE BOTTLE SHATTERS',1.5);}}
+// Attack contact occurs after a short windup, not at mouse-down.
+function attack(){
+ if(player.attackCooldown>0||player.pendingStrike)return;
+ emitNoise(player.x,player.z,6);
+ const knife=held?.type==='knife';
+ player.attackCooldown=knife?.38:.64;
+ player.attack=knife?.30:.43;
+ player.pendingStrike={time:knife?.11:.18,weapon:held,damage:held?ITEM_TYPES[held.type].damage:6,range:held?ITEM_TYPES[held.type].reach:1.3};
+}
+function resolvePlayerStrike(strike){
+ let found=false;
+ for(const e of enemies){
+  if(e.dead)continue;
+  const b=aimAt(e.x,1.2,e.z);
+  if(b.len<strike.range&&b.dot>.71&&canSee(player.x,player.z,e.x,e.z)){
+   e.hp-=strike.damage;e.stun=.7;e.windup=0;e.flash=.35;
+   e.x+=Math.sin(player.yaw)*.3;e.z-=Math.cos(player.yaw)*.3;
+   found=true;player.impact=.13;
+   impactSound(e.x,e.z,true);
+   showNotice('HIT · '+strike.damage+' DAMAGE',.8);
+   if(e.hp<=0){e.dead=true;kills++;showNotice('THREAT NEUTRALIZED',2.3);beep(345,.45,'triangle',.12,-290);}
+  }
+ }
+ if(!found)impactSound(player.x+Math.sin(player.yaw),player.z-Math.cos(player.yaw),false);
+ if(strike.weapon?.type==='bottle'&&found&&held===strike.weapon){held.broken=true;held=null;showNotice('THE BOTTLE SHATTERS',1.5);}
+}
 function throwItem(){
  if(!held)return;
  if(held.type==='extinguisher'){
@@ -743,11 +778,11 @@ function throwItem(){
  let a=held,d=direction();emitNoise(player.x,player.z,5);a.x=player.x+d.x*.65;a.y=1.25+d.y*.35;a.z=player.z+d.z*.65;a.vx=d.x*8;a.vy=d.y*6+1.6;a.vz=d.z*8;a.air=true;held=null;beep(145,.16,'sawtooth',.06,-80);}
 const patrolPoints=[[4.9,.8],[1.0,1.6],[-2.7,2.4],[-3.2,3.9],[-.8,-.8],[4.6,-.7]];
 function spawnEnemy(){
- let a={x:6.68,z:rnd(-.12,.36),hp:100,stun:0,flash:0,attack:0,walk:0,path:[],pathTimer:0,dead:false,angle:0,mode:'search',goalX:4.8,goalZ:1.0,memory:0,patrol:0};
+ let a={x:6.68,z:rnd(-.12,.36),hp:100,stun:0,flash:0,attack:0,windup:0,recovery:0,walk:0,path:[],pathTimer:0,dead:false,angle:0,mode:'search',goalX:4.8,goalZ:1.0,memory:0,patrol:0};
  enemies.push(a);spawned++;breachFlash=1;thud();showNotice(spawned===1?'THE FRONT DOOR GIVES WAY':'MORE FOOTSTEPS. SOMEONE ELSE IS INSIDE.',3);
 }
 function playerHiddenBehindFurniture(e){
- if(!player.crouched||dist(e.x,e.z,player.x,player.z)<1.5)return false;
+ if(player.stance>.55||dist(e.x,e.z,player.x,player.z)<1.5)return false;
  let n=Math.ceil(dist(e.x,e.z,player.x,player.z)/.15);
  for(let i=1;i<n;i++){let t=i/n,x=e.x+(player.x-e.x)*t,z=e.z+(player.z-e.z)*t;for(let o of blockers){
  // The long sofa and bed offer cover when crouching, not all counters or wall decor.
@@ -756,7 +791,7 @@ function playerHiddenBehindFurniture(e){
 }
 function updateEnemy(e,dt){
  if(e.dead)return;
- e.stun=Math.max(0,e.stun-dt);e.flash=Math.max(0,e.flash-dt);e.attack-=dt;e.pathTimer-=dt;e.memory=Math.max(0,e.memory-dt);
+ e.stun=Math.max(0,e.stun-dt);e.flash=Math.max(0,e.flash-dt);e.attack-=dt;e.recovery=Math.max(0,e.recovery-dt);e.pathTimer-=dt;e.memory=Math.max(0,e.memory-dt);
  let r=dist(e.x,e.z,player.x,player.z),dark=powerCut||(!roomOn&&player.x<-1.7&&player.z>.5)||(!kitchenOn&&player.z<.5&&player.x<.7);
  let sight=dark?3.3:6.4;if(flash)sight+=1.6;sight*=.66+.34*player.stance;
  let visible=r<sight&&canSee(e.x,e.z,player.x,player.z)&&!playerHiddenBehindFurniture(e);
@@ -770,14 +805,26 @@ function updateEnemy(e,dt){
  if(e.mode==='patrol'&&dist(e.x,e.z,e.goalX,e.goalZ)<.55){let p=patrolPoints[e.patrol%patrolPoints.length];e.goalX=p[0];e.goalZ=p[1];e.patrol++;e.pathTimer=0;}
  if(e.mode==='chase'&&visible)e.pathTimer=Math.min(e.pathTimer,.36);
  if(e.pathTimer<=0){e.pathTimer=e.mode==='chase'?.32:rnd(.7,1.15);e.path=pathfind(e.x,e.z,e.goalX,e.goalZ);}
- if(r>1.02&&e.stun<=0){
+ if(r>1.02&&e.stun<=0&&e.windup<=0){
   let tx=e.goalX,tz=e.goalZ;if(e.path.length){let p=e.path[0];if(dist(e.x,e.z,p[0],p[1])<.30)e.path.shift();if(e.path.length){tx=e.path[0][0];tz=e.path[0][1];}}
   let a=Math.atan2(tx-e.x,tz-e.z),spd=(e.mode==='chase'?1.46:1.15)*dt,nx=e.x+Math.sin(a)*spd,nz=e.z+Math.cos(a)*spd;
   if(!blocked(nx,e.z,.29))e.x=nx;if(!blocked(e.x,nz,.29))e.z=nz;e.walk+=dt*6.6;
  }
  e.angle=Math.atan2(-(e.goalX-e.x),-(e.goalZ-e.z));
- if(r<1.12&&e.attack<=0&&e.stun<=0&&canSee(e.x,e.z,player.x,player.z)){
-  e.attack=1.33;player.hp=Math.max(0,player.hp-18);player.hurt=.85;thud();beep(90,.2,'sawtooth',.10,-70);showNotice('YOU WERE HIT',1.2);emitNoise(player.x,player.z,7);if(player.hp<=0)end(false);
+ if(e.windup>0){
+  e.windup-=dt;
+  if(e.stun>0){e.windup=0;e.recovery=.6;}
+  else if(e.windup<=0){
+   e.recovery=.62;e.attack=.75;
+   if(r<1.35&&canSee(e.x,e.z,player.x,player.z)){
+    player.hp=Math.max(0,player.hp-18);player.hurt=.85;player.impact=.2;
+    spatialBeep(e.x,e.z,90,.14,.2);showNotice('YOU WERE HIT',1.2);
+    emitNoise(player.x,player.z,7);if(player.hp<=0)end(false);
+   }else spatialBeep(e.x,e.z,150,.05,.11);
+  }
+ }else if(r<1.22&&e.attack<=0&&e.recovery<=0&&e.stun<=0&&canSee(e.x,e.z,player.x,player.z)){
+  e.windup=.82;e.attack=1.55;
+  spatialBeep(e.x,e.z,165,.045,.18);
  }
 }
 
@@ -791,7 +838,7 @@ function end(win){
 
 function update(dt){
  if(!playing)return;dt=Math.min(.05,dt);elapsed+=dt;if(called)remaining-=dt;
- player.attack=Math.max(0,player.attack-dt);player.attackCooldown=Math.max(0,player.attackCooldown-dt);player.hurt=Math.max(0,player.hurt-dt);breachFlash=Math.max(0,breachFlash-dt*.9);smokeTime=Math.max(0,smokeTime-dt);noiseLevel=Math.max(0,noiseLevel-23*dt);
+ player.attack=Math.max(0,player.attack-dt);player.interaction=Math.max(0,player.interaction-dt);player.impact=Math.max(0,player.impact-dt);if(player.pendingStrike){player.pendingStrike.time-=dt;if(player.pendingStrike.time<=0){const strike=player.pendingStrike;player.pendingStrike=null;resolvePlayerStrike(strike);}}player.attackCooldown=Math.max(0,player.attackCooldown-dt);player.hurt=Math.max(0,player.hurt-dt);breachFlash=Math.max(0,breachFlash-dt*.9);smokeTime=Math.max(0,smokeTime-dt);noiseLevel=Math.max(0,noiseLevel-23*dt);
  let fx=Math.sin(player.yaw),fz=-Math.cos(player.yaw),rx=Math.cos(player.yaw),rz=Math.sin(player.yaw),sx=0,sz=0;
  if(keys.KeyW||keys.ArrowUp){sx+=fx;sz+=fz;}if(keys.KeyS||keys.ArrowDown){sx-=fx;sz-=fz;}if(keys.KeyA){sx-=rx;sz-=rz;}if(keys.KeyD){sx+=rx;sz+=rz;}
  player.stance+= (player.stanceTarget-player.stance)*Math.min(1,dt*9);
@@ -917,7 +964,7 @@ window.addEventListener('resize',resize);resize();
 gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearColor(.016,.025,.043,1);
 let last=performance.now(),frame=0,fpsClock=performance.now(),fpsFrames=0,fpsSmooth=60;
 function loop(now){requestAnimationFrame(loop);let dt=Math.min((now-last)/1000,.05);last=now;frame++;update(dt);resize();gl.useProgram(prog);
-let p=camera();let yaw=player.yaw,pitch=player.pitch;if(!started){p={x:-4.7,y:1.68,z:2.2};yaw=1.4+Math.sin(now*.00016)*.09;pitch=-.065;}else if(!playing&&!finished){p=camera();}
+let p=camera();let yaw=player.yaw,pitch=player.pitch;if(playing&&player.impact>0){pitch-=player.impact*.08;}if(!started){p={x:-4.7,y:1.68,z:2.2};yaw=1.4+Math.sin(now*.00016)*.09;pitch=-.065;}else if(!playing&&!finished){p=camera();}
 let d={x:Math.sin(yaw)*Math.cos(pitch),y:Math.sin(pitch),z:-Math.cos(yaw)*Math.cos(pitch)};
 const shadowEnabled=shadowOK&&quality===1;
 const lightVP=shadowEnabled?renderShadows(p,yaw,pitch):ident();
@@ -936,25 +983,25 @@ staticMesh.draw();
  if(started&&playing){
   // Camera-relative viewmodel: breathing, locomotion, crouch and strike recovery.
   const stride=Math.sin(player.stepPhase)*player.moveBlend,breath=Math.sin(now*.0017)*.008;
-  const strike=player.attack>0?Math.sin((1-player.attack/.22)*Math.PI)*.22:0;
+  const strike=player.attack>0?Math.sin((1-player.attack/.43)*Math.PI)*.24:0;const reachPose=player.interaction>0?Math.sin((1-player.interaction/.36)*Math.PI)*.20:0;
   const forward={x:Math.sin(yaw),z:-Math.cos(yaw)},right={x:Math.cos(yaw),z:Math.sin(yaw)};
   for(const side of [-1,1]){
-   const reach=side===1?(.50+strike):.42;
+   const reach=side===1?(.50+strike+reachPose):.42;
    const sway=stride*.038*(side===1?1:-1);
    const x=p.x+forward.x*reach+right.x*(side===1?.28:-.31);
    const z=p.z+forward.z*reach+right.z*(side===1?.28:-.31);
-   const y=p.y-.39+breath+sway+strike*.15;
+   const y=p.y-.39+breath+sway+strike*.15+reachPose*.09-player.impact*.13;
    playerSleeveMesh.draw(modelMatrix(x,y-.17,z,-yaw));
    playerGloveMesh.draw(modelMatrix(x,y-.37,z,-yaw));
   }
  }
  for(let a of items){if(a.broken)continue;let x=a.x,y=a.y,z=a.z,ang=a.rot;if(a===held){let dx=Math.sin(yaw),dz=-Math.cos(yaw),rx=Math.cos(yaw),rz=Math.sin(yaw);x=p.x+dx*.76+rx*.34;y=p.y-.37+Math.sin(player.attack*17)*.10;z=p.z+dz*.76+rz*.34;ang=-yaw;}itemMeshes[a.type].draw(modelMatrix(x,y,z,ang));}
 for(let e of enemies){
- let stepping=(e.stun>0?0:Math.sin(e.walk));
+ let stepping=(e.stun>0||e.windup>0?0:Math.sin(e.walk));
  let bob=Math.abs(stepping)*.018;
  enemyMesh.draw(modelMatrix(e.x,bob,e.z,e.angle));
  for(let side of [-1,1]){
-  enemyArmMesh.draw(limbMatrix(e.x,bob+1.38,e.z,e.angle,stepping*.29*side+(e.stun>0?.3:0),side*.405,-.015));
+  enemyArmMesh.draw(limbMatrix(e.x,bob+1.38,e.z,e.angle,stepping*.29*side+(e.stun>0?.3:0)+(e.windup>0?.65*(1-e.windup/.82):0),side*.405,-.015));
   enemyLegMesh.draw(limbMatrix(e.x,bob+.79,e.z,e.angle,stepping*.39*-side,side*.175,.015));
  }
 }
@@ -966,4 +1013,4 @@ requestAnimationFrame(loop);
 })();
 </script>
 <a href="./index.html" id="return-main-menu" aria-label="Return to main menu" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:1000;padding:10px 17px;background:rgba(8,13,20,.93);border:1px solid #d7a675;color:#f5d2a8;text-decoration:none;font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.12em;box-shadow:0 4px 18px #0008">← MAIN MENU</a>
-<div id="analog-status" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;background:#07101bbb;border:1px solid #9da8b344;padding:6px 11px;color:#d7c5a8;font:700 11px system-ui;letter-spacing:.06em">WHEEL PACE · C + WHEEL STANCE · SHIFT SPRINT</div></body></html>
+<div id="analog-status" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;background:#07101bbb;border:1px solid #9da8b344;padding:6px 11px;color:#d7c5a8;font:700 11px system-ui;letter-spacing:.06em">WHEEL PACE · C + WHEEL STANCE · SHIFT SPRINT</div><div id="nightfall-system-status" aria-live="off" style="position:fixed;bottom:42px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;color:#b4c4c9;font:600 10px system-ui;letter-spacing:.09em">CONTACT COMBAT · TELEGRAPHED THREATS · SPATIAL AUDIO</div></body></html>
