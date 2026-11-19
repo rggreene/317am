@@ -102,3 +102,13 @@ const muffled=createThreatBrain();
 assert.equal(tickThreat(muffled,{dt:.05,enemy:soundEnemy,player:soundPlayer,
   housePower:false,soundEvent:{...noise,range:2.5},blockers:blocker}).mode,'search',
   'a quiet sound beyond occluded hearing range must not alert the intruder');
+
+// Search points are deliberate: pause and listen before moving to the next.
+const patrol=createThreatBrain();
+const patrolGoal={...patrol.goal};
+const absent={x:20,z:20};
+let patrolStep=tickThreat(patrol,{dt:.1,enemy:patrolGoal,player:absent});
+assert.equal(patrolStep.mode,'search');
+assert.equal(patrolStep.goal,null,'intruder should stop at a search point');
+for(let i=0;i<8;i++)patrolStep=tickThreat(patrol,{dt:.1,enemy:patrolGoal,player:absent});
+assert.notDeepEqual(patrolStep.goal,patrolGoal,'intruder should move on after listening');
