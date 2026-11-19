@@ -1,4 +1,4 @@
-> **Experimental branch: feature/visual-overhaul** — This branch is a Three.js visual sandbox, not the playable Nightfall v0.4. The complete playable game remains on `main`. To try this preview: `npm install`, `npm run dev`, then press **V** for the first-person impact lab, **E** to inspect the frying pan in orbit mode, or **R** to inspect the intruder. To rebuild the procedural source: `npm run assets:pan`. See [migration notes](docs/THREEJS_MIGRATION.md).
+> **Experimental branch: feature/visual-overhaul** — This branch is a Three.js visual sandbox, not the playable Nightfall v0.4. The complete playable game remains on `main`. To try this preview: `npm install`, `npm run dev`, then press **V** for the survival alpha, **P** to cycle quality presets, **E** to inspect the frying pan in orbit mode, or **R** to inspect the intruder. To rebuild the procedural source: `npm run assets:pan`. See [migration notes](docs/THREEJS_MIGRATION.md).
 
 # 3:17 AM — Nightfall (v0.4)
 

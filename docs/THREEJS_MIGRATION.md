@@ -99,3 +99,11 @@ Do **not** deploy this lab to the existing public Netlify site in place of the v
 - This is a compact survival demonstration, **not full parity** with Nightfall v0.4 on `main`. The visual lab remains available.
 - Controls: **V** first-person/orbit; **WASD**, Shift, left click pan, **E** interact, **N** restart after game over, **M** mute, Esc release mouse.
 - Performance, physical collision details, visuals and enemy pacing require a real-browser playtest.
+
+## Quality profiles and subtle surface relief
+
+- Press **P** to cycle **Balanced**, **Cinematic**, and **Performance** quality profiles.
+- Profiles adjust internal resolution and shadow-map cost; **Performance** disables cast shadows for a lower GPU workload.
+- Three.js procedural fabric, laminate and paint now include subtle generated surface-height bump maps. These are not substitutes for artist-authored scanned PBR textures.
+- `npm run test:rendering` checks quality profiles without creating a WebGL context.
+- Cinematic is optional and can be noticeably more expensive, particularly on high-resolution screens.

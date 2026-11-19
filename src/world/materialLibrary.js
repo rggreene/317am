@@ -50,6 +50,28 @@ function texture(kind,seed=17){
   return map;
 }
 
+// A second low-resolution surface map gives fabric, floorboards and paint
+// a restrained bump response under our practical lighting.
+function heightTexture(kind,seed){
+  const size=256,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
+  const ctx=canvas.getContext('2d'),rng=random(seed);
+  ctx.fillStyle='#8b8b8b';ctx.fillRect(0,0,size,size);
+  const count=kind==='fabric'?1900:kind==='wood'?420:2700;
+  for(let i=0;i<count;i++){
+    ctx.globalAlpha=kind==='wood'?.05+rng()*.08:.035+rng()*.08;
+    ctx.fillStyle=rng()>.5?'#efefef':'#323232';
+    const x=rng()*size,y=rng()*size;
+    const w=kind==='wood'?18+rng()*74:1+rng()*2;
+    const h=kind==='wood'?.5+rng()*1.5:1+rng()*2;
+    ctx.fillRect(x,y,w,h);
+  }
+  ctx.globalAlpha=1;
+  const tex=new THREE.CanvasTexture(canvas);
+  tex.wrapS=THREE.RepeatWrapping;tex.wrapT=THREE.RepeatWrapping;
+  tex.colorSpace=THREE.NoColorSpace;tex.anisotropy=4;
+  return tex;
+}
+
 export function makeMaterials(){
   const standard=(color,roughness=.85,metalness=0,options={})=>
     new THREE.MeshStandardMaterial({color,roughness,metalness,...options});
@@ -57,21 +79,25 @@ export function makeMaterials(){
   const woodMap=texture('wood',39),fabricMap=texture('fabric',103),
         plasterMap=texture('plaster',271);
   const floorMap=woodMap.clone();floorMap.needsUpdate=true;floorMap.repeat.set(1.5,1);
+  const woodHeight=heightTexture('wood',293),fabricHeight=heightTexture('fabric',541),
+        plasterHeight=heightTexture('plaster',809);
+  const floorHeight=woodHeight.clone();floorHeight.needsUpdate=true;floorHeight.repeat.set(1.5,1);
+  const wallHeight=plasterHeight.clone();wallHeight.needsUpdate=true;wallHeight.repeat.set(4,2);
   const wallMap=plasterMap.clone();wallMap.needsUpdate=true;wallMap.repeat.set(4,2);
   return {
-    wall:standard('#e1e3df',.94,0,{map:wallMap}),
+    wall:standard('#e1e3df',.94,0,{map:wallMap,bumpMap:wallHeight,bumpScale:.007}),
     wallDark:standard('#777f87',.97,0,{map:plasterMap}),
     trim:standard('#d2d2cb',.66),
     edge:standard('#aab0ae',.82),
-    floor:standard('#ffffff',.73,0,{map:floorMap}),
+    floor:standard('#ffffff',.73,0,{map:floorMap,bumpMap:floorHeight,bumpScale:.012}),
     floorSeam:standard('#342a25',.9),
-    wood:standard('#e3c6aa',.67,0,{map:woodMap}),
+    wood:standard('#e3c6aa',.67,0,{map:woodMap,bumpMap:woodHeight,bumpScale:.011}),
     darkWood:standard('#3f3028',.7),
-    upholstery:standard('#d6dfe6',.95,0,{map:fabricMap}),
-    upholsteryShade:standard('#8f9eac',.95,0,{map:fabricMap}),
+    upholstery:standard('#d6dfe6',.95,0,{map:fabricMap,bumpMap:fabricHeight,bumpScale:.014}),
+    upholsteryShade:standard('#8f9eac',.95,0,{map:fabricMap,bumpMap:fabricHeight,bumpScale:.014}),
     paleLinen:standard('#c7c8bb',.96),
     throw:standard('#8e7966',.98),
-    rug:standard('#647179',1,0,{map:fabricMap}),
+    rug:standard('#647179',1,0,{map:fabricMap,bumpMap:fabricHeight,bumpScale:.024}),
     black:standard('#121923',.6),
     screen:standard('#192b37',.25,0,{emissive:'#284e68',emissiveIntensity:.65}),
     chrome:standard('#abb4b8',.24,.77),

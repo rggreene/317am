@@ -5,6 +5,7 @@ import { loadFryingPan } from '../props/loadFryingPan.js';
 import {createRiggedIntruder,INTRUDER_CLIPS} from '../actors/IntruderController.js';
 import {CombatLab} from './CombatLab.js';
 import {NightDirector} from './NightDirector.js';
+import {applyQualityPreset,nextQuality} from '../rendering/QualityManager.js';
 
 export class Game {
   constructor({canvas,root}){
@@ -68,6 +69,8 @@ export class Game {
     this.panLight.position.set(2.12,1.92,-.6);
     scene.add(this.panLight);
     this.tmpDirection=new THREE.Vector3();
+    this.quality='balanced';
+    this.setQuality(this.quality);
     this.configureLighting();
     this.combat=new CombatLab({
       view:this.view,
@@ -115,6 +118,7 @@ export class Game {
         case 'KeyG':this.moody=!this.moody;this.configureLighting();break;
         case 'KeyF':this.flashlightOn=!this.flashlightOn;this.flashlight.visible=this.flashlightOn;break;
         case 'KeyH':this.rootElement.classList.toggle('hide-ui');break;
+        case 'KeyP':this.setQuality(nextQuality(this.quality));break;
         case 'KeyO':this.fpsVisible=!this.fpsVisible;document.querySelector('#fps').hidden=!this.fpsVisible;break;
       }
     };
@@ -198,6 +202,20 @@ export class Game {
     controls.enabled=false;
     const label=document.querySelector('#inspect-mode');
     if(label)label.textContent=this.intruderInspect?'INSPECTING INTRUDER · R TO RETURN':'APARTMENT OVERVIEW · E PAN · R INTRUDER';
+  }
+  setQuality(name){
+    this.quality=name;
+    const config=applyQualityPreset(
+      this.view.renderer,[this.moon,this.flashlight,this.livingLamp],
+      name,window.devicePixelRatio||1
+    );
+    this.view.resize();
+    const readable=name.toUpperCase();
+    const orbit=document.querySelector('#quality-indicator');
+    const play=document.querySelector('#quality-play');
+    if(orbit)orbit.textContent='QUALITY: '+readable+' · P TO CHANGE';
+    if(play)play.textContent='GRAPHICS '+readable+' · P TO CHANGE';
+    return config;
   }
   setBreakerPower(power){
     const strength=power?1:.025;
