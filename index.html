@@ -1,71 +1,25 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#080d13" />
-  <title>3:17 AM — Vertical Slice Alpha</title>
-  <link rel="stylesheet" href="/src/styles.css" />
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d13">
+<title>3:17 AM — Select a Mode</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#070b11;color:#f4eee6}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:32px;background:radial-gradient(ellipse at 75% 20%,#263344 0%,transparent 50%),linear-gradient(145deg,#080d15,#14141a 70%,#080b10)}
+main{width:min(960px,100%)}.eyebrow{color:#eeb77e;letter-spacing:.28em;font-size:12px;font-weight:800}h1{font-size:clamp(70px,14vw,150px);letter-spacing:-.09em;line-height:.9;margin:22px 0 16px}h1 span{color:#f3b979}p{color:#b5bdc7;line-height:1.7}.intro{max-width:620px;margin-bottom:35px}.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}.mode{display:flex;flex-direction:column;min-height:260px;padding:30px;border:1px solid #43505a;background:linear-gradient(160deg,#1c2632,#10141b);text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}.mode:hover,.mode:focus-visible{transform:translateY(-4px);border-color:#f3b979;outline:none}.mode small{color:#f3b979;letter-spacing:.2em;font-weight:800}.mode h2{font-size:30px;margin:20px 0 0}.mode p{margin:12px 0 28px;flex:1}.mode strong{color:#f3b979;font-size:13px;letter-spacing:.12em}.foot{margin-top:26px;color:#8896a3;font-size:12px}
+</style>
 </head>
 <body>
-  <main id="app">
-    <canvas id="scene" aria-label="Three-dimensional preview of the 3:17 AM apartment"></canvas>
-    <div id="error" role="alert" hidden></div>
-    <header class="top">
-      <div class="brand"><span class="time">3:17 AM</span><span class="edition">VERTICAL SLICE ALPHA · PRIVATE DEVELOPMENT</span></div>
-      <button id="play-mode" type="button" class="status mode-button"><span class="light"></span><span>ENTER FIRST PERSON  [V]</span></button>
-    </header>
-    <section class="intro">
-      <p class="overline">SOMEONE IS INSIDE</p>
-      <h1>Don't turn on the lights.</h1>
-      <p>A phone call. A reinforced door. Seventy-five seconds. Make it to the sirens.</p>
-    </section>
-    <footer class="bottom">
-      <div id="help"><b>EXPLORE</b><span>Drag to orbit · Scroll to zoom</span><span><kbd>V</kbd> Survival mode</span><span><kbd>E</kbd> Pan · <kbd>R</kbd> Intruder close-up</span><span><kbd>1</kbd> Idle · <kbd>2</kbd> Walk</span><span><kbd>3</kbd> Attack · <kbd>4</kbd> Stagger</span><span><kbd>G</kbd> Ambient light</span><span><kbd>F</kbd> Flashlight</span><span><kbd>O</kbd> FPS</span><span><kbd>P</kbd> Graphics quality</span><span><kbd>H</kbd> Hide UI</span></div>
-      <div class="note"><strong>R&D MILESTONE 07 · VERTICAL SLICE</strong><span><span id="asset-status">Loading frying pan GLB...</span><span id="inspect-mode">APARTMENT OVERVIEW · E PAN · R INTRUDER</span></span><span id="intruder-status">Loading intruder GLB...</span><span id="clip-status">INTRUDER: WAITING</span><span id="quality-indicator">QUALITY: BALANCED · P TO CHANGE</span><span id="fps" hidden>-- FPS</span></div>
-    </footer>
-    <div id="fps-hud">
-      <section id="night-hud" aria-label="Survival status">
-        <div class="night-topline"><span id="night-clock">01:15</span><span id="night-health">100%</span></div>
-        <div id="night-objective">FIND THE PHONE. CALL FOR HELP.</div>
-        <div id="night-message">Call for help. Barricade the door. Survive until dawn.</div>
-        <div id="threat-indicator" aria-live="off">HOUSE QUIET</div>
-        <div id="interaction-hint">MOVE CLOSE TO AN OBJECT AND PRESS E</div>
-      </section>
-      <div class="practice-heading">
-        <strong>3:17 AM · SURVIVAL NIGHT</strong>
-        <span id="mode-status">PRACTICE MODE · CLICK TO CAPTURE</span><span id="quality-play">GRAPHICS BALANCED · P TO CHANGE</span>
-      </div>
-      <section id="movement-hud" aria-label="Movement stance and speed" aria-live="off">
-        <div class="movement-row">
-          <span id="stance-readout">STANCE · STANDING</span>
-          <div class="movement-track" aria-hidden="true"><i id="stance-meter"></i></div>
-        </div>
-        <div class="movement-row">
-          <span id="pace-readout">PACE · 1.75 M/S · WALK</span>
-          <div class="movement-track" aria-hidden="true"><i id="pace-meter"></i></div>
-        </div>
-        <div class="movement-help">WHEEL PACE · HOLD C + WHEEL STANCE</div>
-      </section>
-      <div id="crosshair" aria-hidden="true"><span></span><span></span></div>
-      <div id="combat-feedback" role="status">CLICK SCENE TO CAPTURE THE MOUSE</div>
-      <div class="combat-footer">
-        <span><b>WASD</b> MOVE <b>WHEEL</b> PACE <b>C + WHEEL</b> STANCE <b>SHIFT</b> SPRINT <b>LEFT CLICK</b> PAN <b>E</b> INTERACT</span>
-        <span><b>V</b> ORBIT <b>ESC</b> RELEASE MOUSE <b>M</b> MUTE <b>P</b> QUALITY <b>N</b> RESTART</span>
-      </div>
-      <div class="hit-counter">HITS LANDED <strong id="hit-count">0</strong></div>
-    </div>
-    <div id="hit-overlay" aria-hidden="true"></div>
-    <div id="night-end" hidden>
-      <div class="night-end-inner">
-        <div class="overline">3:17 AM · AFTERMATH</div>
-        <h2 id="night-end-title">YOU SURVIVED</h2>
-        <p id="night-end-copy"></p>
-        <p>Press <kbd>N</kbd> to try another night, or <kbd>V</kbd> to return to the apartment lab.</p>
-        <button id="night-restart" type="button">RESTART THE NIGHT</button>
-      </div>
-    </div>
-  </main>
-  <script type="module" src="/src/main.js"></script>
+<main>
+<div class="eyebrow">3:17 AM · CHOOSE YOUR NIGHT</div>
+<h1>3:17 <span>AM</span></h1>
+<p class="intro">Two playable experiences. Choose the original survival apartment or explore the upgraded visual prototype.</p>
+<section class="modes" aria-label="Select game mode">
+<a class="mode" href="./nightfall-classic.html"><small>ORIGINAL MAP · V0.4</small><h2>Nightfall Survival</h2><p>The larger original apartment. Health, stamina, item pickups, improvised weapons, first aid, phone, barricade and breaker.</p><strong>PLAY ORIGINAL →</strong></a>
+<a class="mode" href="./visual-lab.html"><small>UPGRADED APARTMENT · ALPHA</small><h2>Visual Lab</h2><p>The newer compact map with upgraded 3D art, lighting, intruder, audio and combat experiments.</p><strong>ENTER VISUAL LAB →</strong></a>
+</section>
+<p class="foot">You can return here from either mode using the MAIN MENU button.</p>
+</main>
 </body>
 </html>
