@@ -30,6 +30,7 @@ export class NightDirector{
     this.endedHandled=false;
     this.lastPhase='idle';
     this.interactable=null;
+    this.pendingNoise=null;
     this.updatePresentation();
   }
 
@@ -59,6 +60,7 @@ export class NightDirector{
   }
   pause(){
     this.pendingContact=null;
+    this.pendingNoise=null;
     this.active=false;
     this.audio.pause();
     this.showEnemy(true); // Keep actor visible for orbit-mode inspection.
@@ -66,6 +68,7 @@ export class NightDirector{
   }
   restart(){
     this.pendingContact=null;
+    this.pendingNoise=null;
     this.state=createNight();
     this.brain=createThreatBrain();
     this.entryWarningIssued=false;
@@ -127,15 +130,15 @@ export class NightDirector{
     switch(item.id){
       case 'phone':
         accepted=nightEvent(this.state,'phone');
-        if(accepted)this.audio.call();
+        if(accepted){this.audio.call();this.emitNoise(item,2.5);}
         break;
       case 'door':
         accepted=nightEvent(this.state,'barricade');
-        if(accepted)this.audio.door();
+        if(accepted){this.audio.door();this.emitNoise(item,5.5);}
         break;
       case 'breaker':
         accepted=nightEvent(this.state,'breaker');
-        if(accepted)this.audio.click();
+        if(accepted){this.audio.click();this.emitNoise(item,2.2);}
         break;
       case 'medkit':
         accepted=nightEvent(this.state,'medkit');
@@ -148,6 +151,10 @@ export class NightDirector{
     }else{
       this.game.combat.setFeedback('ALREADY USED OR UNAVAILABLE');
     }
+  }
+  emitNoise(position,range){
+    if(!this.state.enemyEntered)return;
+    this.pendingNoise={x:position.x,z:position.z,range};
   }
   onPlayerHit(){
     if(!this.active||!this.state.enemyEntered||this.state.phase!=='playing')return;
@@ -199,10 +206,12 @@ export class NightDirector{
     const stance=this.game.combat.analog?.stance??1;
     const moving=movementSpeed>.08;
     const running=moving&&movementSpeed>2.35;
+    const noise=this.pendingNoise;
+    this.pendingNoise=null;
     const step=tickThreat(this.brain,{
       dt,enemy:this.enemyPosition,player,moving,running,movementSpeed,stance,
       flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false,
-      housePower:this.state.breakerOn
+      housePower:this.state.breakerOn,soundEvent:noise
     });
     const distance=Math.hypot(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
 
