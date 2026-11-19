@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {createNight,beginNight,tickNight,nightEvent,nightObjective,
   focusedInteractable,THREAT_DELAY,BARRICADE_DELAY} from './SurvivalRules.js';
-import {createThreatBrain,tickThreat,interruptThreat} from './ThreatBrain.js';
+import {createThreatBrain,tickThreat,interruptThreat,WINDUP_SECONDS} from './ThreatBrain.js';
 import {findNavigationPath,navigateStep} from './NavGrid.js';
 import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
@@ -73,6 +73,7 @@ export class NightDirector{
     this.lastStepAt=-100;
     this.setEnemyPosition(ENTRY.x,ENTRY.z);
     this.target?.setClip('idle');
+    this.target?.setIntent('idle');
     this.active=true;
     beginNight(this.state);
     this.showEnemy(false);
@@ -148,6 +149,7 @@ export class NightDirector{
     nightEvent(this.state,'stun');
     interruptThreat(this.brain);
     this.actorState='stagger';
+    this.target?.setIntent('stagger');
     this.pathAge=0;
     this.updatePresentation();
   }
@@ -177,14 +179,17 @@ export class NightDirector{
       this.audio.warning();
     }
     if(step.mode==='staggered'){
+      this.target?.setIntent('stagger');
       this.setActorPose('stagger');
       return;
     }
     if(step.mode==='windup'){
+      this.target?.setIntent('windup',1-this.brain.windup/WINDUP_SECONDS);
       this.setActorPose('idle');
       return;
     }
     if(step.mode==='attack'){
+      this.target?.setIntent('attack');
       this.setActorPose('attack');
       if(step.strike){
         const hit=nightEvent(this.state,'hit');
@@ -202,10 +207,12 @@ export class NightDirector{
       return;
     }
     if(step.mode==='recover'){
+      this.target?.setIntent('recover');
       if(this.brain.recovery<.62)this.setActorPose('idle');
       return;
     }
 
+    this.target?.setIntent(step.mode);
     this.setActorPose('walk');
     const goal=step.goal;
     if(!goal)return;

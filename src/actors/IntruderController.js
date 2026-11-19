@@ -4,6 +4,7 @@ import {loadGLB} from '../assets/loadGLB.js';
 import {impactDirection,dampedSpring} from '../game/ImpactQuality.js';
 import {dressIntruderRig} from './IntruderArtPass.js';
 import {sculptIntruderSilhouette} from './IntruderSculpt.js';
+import {intruderPose} from './IntruderPose.js';
 
 export const INTRUDER_CLIPS=Object.freeze(['idle','walk','attack','stagger']);
 
@@ -32,6 +33,35 @@ export async function createRiggedIntruder(){
   // meshes; the old skinned mesh stays in memory as a reversible fallback.
   const sculpt=sculptIntruderSilhouette(asset.scene);
   const art=dressIntruderRig(asset.scene);
+  // Intent layer is additive to the original four GLB animation clips.
+  // Undo the previous offset before mixer.update to avoid frame-to-frame drift.
+  const poseBones=new Map();
+  asset.scene.traverse(node=>{if(node.isBone)poseBones.set(node.name,node);});
+  const applied=new Map();
+  let intent='idle',intentProgress=0,poseClock=0;
+  const inverse=new THREE.Quaternion(),addition=new THREE.Quaternion();
+  function resetPose(){
+    for(const [name,quat] of applied){
+      const bone=poseBones.get(name);
+      if(bone){
+        inverse.copy(quat).invert();
+        bone.quaternion.multiply(inverse);
+      }
+    }
+    applied.clear();
+  }
+  function addPose(dt){
+    poseClock+=dt;
+    const pose=intruderPose(intent,intentProgress,poseClock);
+    for(const [name,angles] of Object.entries(pose)){
+      const bone=poseBones.get(name);
+      if(!bone)continue;
+      const euler=new THREE.Euler(...angles,'XYZ');
+      addition.setFromEuler(euler);
+      bone.quaternion.multiply(addition);
+      applied.set(name,addition.clone());
+    }
+  }
   let active=null;
   let current='';
   let onChanged=()=>{};
@@ -81,8 +111,14 @@ export async function createRiggedIntruder(){
     art,
     sculpt,
     setClip,
+    setIntent(name,progress=0){
+      intent=name;
+      intentProgress=THREE.MathUtils.clamp(progress,0,1);
+    },
     update(delta){
+      resetPose();
       asset.mixer.update(delta);
+      addPose(delta);
       for(const state of Object.values(reaction)){
         const next=dampedSpring(state.value,state.velocity,delta,16);
         state.value=next.value;

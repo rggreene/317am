@@ -99,28 +99,35 @@ function addCoat(bones){
 }
 function addHead(bones){
   const head=bones.get('Head');
-  // Narrow, human skull: the feature geometry is deliberately low contrast.
-  ellipse(head,.197,MAT.skin,'Human shadowed face',[0,.018,.049],[.89,1.14,.80],22);
-  ellipse(head,.226,MAT.hood,'Layered hood shell',[0,.092,-.079],[1.18,1.18,.95],24);
-  // Shadowed brow rather than glowing eyes.
-  loft(head,[
-    [0,.062,.119,.181,.12,0],
-    [0,.128,.084,.198,.145,.02],
-    [0,.210,-.001,.158,.150,.012],
-    [0,.31,-.062,.07,.08,0]
-  ],MAT.hood,'Forward hood brow and shadow',20);
-  loft(head,[
-    [0,-.186,.079,.152,.099,.01],
-    [0,-.12,.108,.168,.096,.01],
-    [0,-.055,.13,.172,.099,.02],
-    [0,.015,.137,.175,.092,.02]
-  ],MAT.shade,'Face partly covered by fabric gaiter',18);
-  for(const x of [-.070,.070]){
-    ellipse(head,.036,MAT.shade,'Deep dark eye socket',
-      [x,.083,.190],[1.05,.50,.36],12);
+  // Narrow human head with a partially visible face. The hood is a short
+  // fabric layer *behind* the skull, not a hard spherical helmet.
+  ellipse(head,.176,MAT.skin,'Human shadowed face',[0,.025,.045],[.89,1.24,.83],24);
+  ellipse(head,.179,MAT.hood,'Soft hair and hood cap',[0,.150,-.060],[1.13,.77,.85],24);
+  // Tapered side panels rest against the temples; face remains visible.
+  for(const side of [-1,1]){
+    loft(head,[
+      [side*.128,-.13,-.013,.055,.077,.016],
+      [side*.135,-.04,-.020,.071,.098,.014],
+      [side*.129,.09,-.030,.063,.096,.01],
+      [side*.119,.22,-.064,.055,.062,0]
+    ],MAT.hood,'Soft hood side panel',12);
+    ellipse(head,.043,MAT.skin,'Visible ear',[side*.170,.025,.045],[.57,.92,.41],12);
+    ellipse(head,.029,MAT.shade,'Subtle eye socket',
+      [side*.070,.078,.190],[1.17,.49,.29],12);
+    seam(head,[[side*.132,.15,-.01],[side*.146,.04,.024],[side*.14,-.095,.018]],
+      MAT.seam,'Hood face border seam',.003);
   }
-  seam(head,[[-.16,.10,.135],[-.11,.155,.147],[0,.17,.148],[.11,.154,.148],[.16,.105,.133]],
-    MAT.seam,'Stitched hood brim');
+  ellipse(head,.040,MAT.skin,'Natural nose bridge',[0,.014,.197],[.60,1.65,.60],12);
+  ellipse(head,.043,MAT.skin,'Small nose tip',[0,-.027,.219],[1,.44,.58],12);
+  // A very dark mouth line reads only when the player gets close.
+  seam(head,[[-.050,-.116,.195],[0,-.123,.207],[.043,-.116,.193]],
+    MAT.shade,'Closed neutral mouth',.002);
+  // Fringe under the hood is irregular and avoids a smooth plastic visor.
+  for(const [x,y,z,s] of [[-.103,.188,.072,.83],[-.037,.216,.113,.70],[.047,.211,.110,.80],[.114,.189,.054,.62]]){
+    const strand=ellipse(head,.061,MAT.hood,'Untidy dark hair lock',
+      [x,y,z],[.45,s,.52],10);
+    strand.rotation.z=x*.8;
+  }
 }
 function addArms(bones){
   for(const side of [-1,1]){

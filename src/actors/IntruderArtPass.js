@@ -89,13 +89,10 @@ export function dressIntruderRig(scene){
   }
   rounded(spine,[.41,.085,.032],[0,-.33,.16],leather,'Weathered lower hem');
   ring(neck,.205,.032,coatDark,'Layered high collar',[0,.015,.015],[-Math.PI/2,0,0]);
-  // Hood opening: a dark cloth rim, no silver eye glow. The black inset
-  // subtly hides the upper face; visible lower skin still catches scene light.
-  ring(head,.182,.027,fabric,'Hood fabric rim',[0,.08,.137],[0,0,0]);
-  rounded(head,[.29,.052,.025],[0,.18,.205],coatDark,
-    'Asymmetric hood brow');
-  rounded(head,[.13,.032,.028],[.07,-.095,.227],faceShadow,
-    'Low face occlusion scarf');
+  // Soft trim around the cloth hood, without the old full circular visor.
+  seam(head,[-.15,.18,.074],[-.11,.00,.10],.004,thread,'Loose hood seam left');
+  seam(head,[.15,.18,.074],[.11,.00,.10],.004,thread,'Loose hood seam right');
+  rounded(head,[.095,.012,.018],[-.03,-.113,.196],faceShadow,'Scarf edge below chin');
 
   // Sleeves, forearms and glove cuff details move with the existing skeleton.
   for(const side of [-1,1]){
