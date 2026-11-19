@@ -166,7 +166,8 @@ export class NightDirector{
     const running=moving&&keys.has('ShiftLeft');
     const step=tickThreat(this.brain,{
       dt,enemy:this.enemyPosition,player,moving,running,
-      flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false
+      flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false,
+      housePower:this.state.breakerOn
     });
     const distance=Math.hypot(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
 
@@ -262,7 +263,7 @@ export class NightDirector{
 
     const keys=this.game.combat.keys;
     if(['KeyW','KeyA','KeyS','KeyD'].some(code=>keys.has(code))){
-      this.audio.step(this.state.elapsed,false);
+      this.audio.step(this.state.elapsed,false,1,0,keys.has('ShiftLeft'));
     }
     if(!this.endedHandled&&['won','lost'].includes(this.state.phase)){
       this.endedHandled=true;

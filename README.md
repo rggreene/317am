@@ -91,3 +91,7 @@ For migration details and milestones, see [Three.js migration notes](docs/THREEJ
 ## Atmosphere pass
 
 The intruder's footsteps are stereo-positioned relative to the player, with quiet procedural room-settling sounds and subtle curtain movement. Audio is synthesized locally and begins after entering first person; press **M** to mute. These sounds are prototypes, not professionally recorded Foley assets.
+
+### Stealth tradeoff
+
+The breaker now affects detection: a lit room exposes a stationary player at a somewhat longer distance, while switching off house power makes hiding easier. **Flashlight use and loud sprinting can still give you away.** Sprint footsteps are faster and slightly louder. This is an early deterministic perception model, not a complete line-of-sight or noise-propagation simulation.

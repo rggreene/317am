@@ -35,5 +35,14 @@ assert.equal(output.mode,'pursue','running can be heard farther away');
 const last={...output.goal};
 output=tickThreat(stalk,{dt:.05,enemy:{x:2.6,z:2},player:{x:-2.5,z:-2.5}});
 assert.deepEqual(output.goal,last,'investigate last detected position, not omniscient target');
+const powered=createThreatBrain();
+const dark=createThreatBrain();
+const farEnemy={x:0,z:0},stationary={x:2.8,z:0};
+assert.equal(tickThreat(powered,{dt:.05,enemy:farEnemy,player:stationary,
+  moving:false,flashlight:false,housePower:true}).mode,'pursue',
+  'house lights expose nearby stationary players');
+assert.equal(tickThreat(dark,{dt:.05,enemy:farEnemy,player:stationary,
+  moving:false,flashlight:false,housePower:false}).mode,'search',
+  'cutting the lights provides a small concealment advantage');
 assert.ok(STRIKE_RANGE<1.3);
 console.log('Telegraphed attack, dodge, stagger and pursuit tests passed');

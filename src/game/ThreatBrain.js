@@ -17,11 +17,11 @@ export function interruptThreat(brain){
   brain.mode='staggered';brain.windup=0;brain.recovery=Math.max(brain.recovery,.55);
   return brain;
 }
-export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,flashlight=false}){
+export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,flashlight=false,housePower=true}){
   const step=clamp(dt,0,.1);
   const range=distance(enemy,player);
   const hearing=running?5.0:moving?3.05:0;
-  const sight=flashlight?4.25:2.1;
+  const sight=flashlight?4.25:housePower?3.2:2.1;
   const detected=range<1.75 || (moving&&range<hearing) || range<sight;
   if(detected){
     brain.lastKnown=copy(player);

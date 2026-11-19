@@ -93,11 +93,11 @@ export class NightAudio{
     this.noiseBurst(460,.22,.011,pan);
     this.tone(142,.19,.006,100,pan);
   }
-  step(now,enemy=false,distance=1,pan=0){
-    const delay=enemy?.8:.38;
+  step(now,enemy=false,distance=1,pan=0,running=false){
+    const delay=enemy?.8:running?.26:.38;
     if(now-(enemy?this.lastEnemyStep:this.lastStep||-100)<delay)return;
     if(enemy)this.lastEnemyStep=now;else this.lastStep=now;
-    const gain=enemy?Math.max(.008,.028*(1-Math.min(distance,6)/8)):.013;
+    const gain=enemy?Math.max(.008,.028*(1-Math.min(distance,6)/8)):running?.019:.013;
     this.tone(enemy?72:98,.055,gain,enemy?44:61,pan);
     this.noiseBurst(enemy?360:540,.065,enemy?gain*.58:.006,pan);
   }
