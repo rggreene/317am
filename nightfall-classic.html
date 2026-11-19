@@ -574,6 +574,9 @@ const itemMeshes={};Object.keys(ITEM_TYPES).forEach(k=>itemMeshes[k]=itemMesh(k)
 let spawnItems=[],items=[];
 function addItem(type,x,y,z){spawnItems.push({type,x,y,z});}
 addItem('lamp',-6.94,.94,3.18);addItem('book',-6.20,.77,4.42);addItem('pan',-1.72,1.38,-2.31);addItem('knife',-1.04,1.40,-2.45);addItem('bottle',3.65,.56,.57);addItem('mug',2.96,.58,.43);addItem('extinguisher',.68,1.34,-4.90);
+// Lightweight first-person glove and jacket geometry rendered by the original WebGL2 pipeline.
+const playerSleeveMesh=(()=>{let m=new Mesh();m.roundedBox(0,-.17,0,.18,.40,.20,.055,[.20,.24,.30],6);m.box(0,-.36,0,.19,.11,.21,[.11,.13,.16],7);return m.upload();})();
+const playerGloveMesh=(()=>{let m=new Mesh();m.roundedBox(0,0,0,.16,.12,.19,.035,[.10,.11,.13],7);for(let i=0;i<4;i++)m.roundedBox((i-1.5)*.038,-.095,-.052,.034,.14,.055,.012,[.12,.13,.15],7);m.box(.105,-.03,.025,.065,.12,.08,[.10,.11,.13],7);return m.upload();})();
 const enemyMesh=(()=>{
  let m=new Mesh();
  // Heavy jacket: broad upper silhouette tapering at the waist.
@@ -644,7 +647,7 @@ return [];}
 const RESCUE_TIME=75;
 let playing=false,started=false,finished=false,remaining=RESCUE_TIME,elapsed=0,kills=0,held=null,target=null,flash=true,roomOn=true,kitchenOn=true,showMap=true,enemySpawnTimer=15,spawned=0;
 let called=false,medUsed=false,doorBraced=false,doorBroken=false,braceDelay=0,powerCut=false,powerRestored=false,blackoutAt=32,smokeTime=0,ambientTimer=9,footstepTimer=0,noCallWarning=false,noiseLevel=0,alerted=false,record=0;
-const player={x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,crouched:false};
+const player={x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,crouched:false,stance:1,stanceTarget:1,pace:.62,moveBlend:0,stepPhase:0};
 let enemies=[],keys={},audio=null,audioUnlocked=false,noticeTimer=0,noticeText='',breachFlash=0;
 let quality=1,showFPS=false;
 try{quality=localStorage.getItem('317am_graphics_v04')==='performance'?0:1}catch(_){}
@@ -664,7 +667,7 @@ function reset(){
  playing=true;finished=false;started=true;remaining=RESCUE_TIME;elapsed=0;kills=0;held=null;flash=true;roomOn=true;kitchenOn=true;showMap=true;enemySpawnTimer=15;spawned=0;enemies=[];target=null;breachFlash=0;
  called=false;medUsed=false;doorBraced=false;doorBroken=false;braceDelay=0;powerCut=false;powerRestored=false;blackoutAt=rnd(28,42);smokeTime=0;ambientTimer=9;footstepTimer=0;noCallWarning=false;noiseLevel=0;alerted=false;
  items=spawnItems.map((a,i)=>({...a,id:i,x:a.x+rnd(-.07,.07),z:a.z+rnd(-.06,.06),vx:0,vy:0,vz:0,air:false,broken:false,rot:rnd(-.6,.6),charges:a.type==='extinguisher'?4:0}));
- Object.assign(player,{x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,crouched:false});keys={};
+ Object.assign(player,{x:-4.05,z:2.53,yaw:1.54,pitch:-.045,hp:100,stamina:100,hurt:0,bob:0,attack:0,attackCooldown:0,crouched:false,stance:1,stanceTarget:1,pace:.62,moveBlend:0,stepPhase:0});keys={};
  $('hud').classList.add('show');$('mapWrap').style.display='block';$('itemLabel').textContent='EMPTY HANDS';$('itemName').textContent='Find something useful.';
  $('itemInfo').textContent='Everything in here might help.';$('powerFlash').style.opacity='0';$('blackout').style.opacity='1';
  $('callChip').className='mission-chip active';$('surviveChip').className='mission-chip';$('objective').textContent='Find your phone. Call for help.';
@@ -690,14 +693,15 @@ document.addEventListener('pointerlockchange',()=>{if(!started||finished)return;
 document.addEventListener('mousemove',e=>{if(!playing||document.pointerLockElement!==canvas)return;player.yaw+=e.movementX*.0024;player.pitch=clamp(player.pitch-e.movementY*.0022,-1.18,1.18);});
 document.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='KeyR'&&finished&&!e.repeat){startGame();return;}if(e.repeat||!started||!playing)return;
 if(e.code==='KeyP'){setQuality(!quality);}if(e.code==='KeyO'){showFPS=!showFPS;$('fpsMeter').style.display=showFPS?'block':'none';}
-if(e.code==='KeyF'){flash=!flash;beep(660,.035,'square',.015)}if(e.code==='KeyC'){player.crouched=!player.crouched;showNotice(player.crouched?'CROUCHING · QUIETER FOOTSTEPS':'STANDING',.85)}if(e.code==='KeyM'){showMap=!showMap;$('mapWrap').style.display=showMap?'block':'none';}
+if(e.code==='KeyF'){flash=!flash;beep(660,.035,'square',.015)}if(e.code==='KeyC'){player.stanceTarget=player.stanceTarget>.5?0:1;showNotice(player.stanceTarget<.5?'LOW STANCE':'STANDING',.85)}if(e.code==='KeyM'){showMap=!showMap;$('mapWrap').style.display=showMap?'block':'none';}
 if(e.code==='KeyE')interact();if(e.code==='KeyG'&&held)dropHeld()
 if(e.code==='KeyR'&&finished)startGame();});
+document.addEventListener('wheel',e=>{if(!started||!playing)return;e.preventDefault();const step=e.deltaY<0?1:-1;if(keys.KeyC){player.stanceTarget=clamp(player.stanceTarget+step*.1,0,1);showNotice('STANCE · '+Math.round(player.stanceTarget*100)+'%',.55);}else{player.pace=clamp(player.pace+step*.08,.12,1);showNotice('PACE · '+Math.round(player.pace*100)+'%',.55);}},{passive:false});
 document.addEventListener('keyup',e=>keys[e.code]=false);
 window.addEventListener('blur',()=>keys={});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('mousedown',e=>{if(!playing)return;if(document.pointerLockElement!==canvas){canvas.requestPointerLock?.();return;}if(e.button===0)attack();if(e.button===2)throwItem();});
-function camera(){let bounce=Math.sin(player.bob*10)*.018;return {x:player.x,y:(player.crouched?1.05:1.60)+bounce,z:player.z};}
+function camera(){let bounce=Math.sin(player.stepPhase)*.014*player.moveBlend;return {x:player.x,y:1.05+.55*player.stance+bounce,z:player.z};}
 function direction(){let c=Math.cos(player.pitch);return {x:Math.sin(player.yaw)*c,y:Math.sin(player.pitch),z:-Math.cos(player.yaw)*c};}
 function aimAt(x,y,z){let p=camera(),d=direction(),vx=x-p.x,vy=y-p.y,vz=z-p.z,len=Math.hypot(vx,vy,vz);return {len,dot:(vx*d.x+vy*d.y+vz*d.z)/Math.max(.01,len)};}
 function findTarget(){let best=null,score=0;for(let a of items){if(a.broken||a===held||a.air)continue;let b=aimAt(a.x,a.y+.09,a.z);let threshold=.92;if(b.len<2.7&&b.dot>threshold&&b.dot/Math.max(.5,b.len)>score&&canSee(player.x,player.z,a.x,a.z)){score=b.dot/Math.max(.5,b.len);best=a;}}return best;}
@@ -754,7 +758,7 @@ function updateEnemy(e,dt){
  if(e.dead)return;
  e.stun=Math.max(0,e.stun-dt);e.flash=Math.max(0,e.flash-dt);e.attack-=dt;e.pathTimer-=dt;e.memory=Math.max(0,e.memory-dt);
  let r=dist(e.x,e.z,player.x,player.z),dark=powerCut||(!roomOn&&player.x<-1.7&&player.z>.5)||(!kitchenOn&&player.z<.5&&player.x<.7);
- let sight=dark?3.3:6.4;if(flash)sight+=1.6;if(player.crouched)sight*=.66;
+ let sight=dark?3.3:6.4;if(flash)sight+=1.6;sight*=.66+.34*player.stance;
  let visible=r<sight&&canSee(e.x,e.z,player.x,player.z)&&!playerHiddenBehindFurniture(e);
  if(visible){e.mode='chase';e.goalX=player.x;e.goalZ=player.z;e.memory=3.5;if(!alerted){alerted=true;showNotice('YOU HAVE BEEN SPOTTED',1.8);}}
  else if(e.mode==='chase'&&e.memory<=0)e.mode='investigate';
@@ -790,10 +794,13 @@ function update(dt){
  player.attack=Math.max(0,player.attack-dt);player.attackCooldown=Math.max(0,player.attackCooldown-dt);player.hurt=Math.max(0,player.hurt-dt);breachFlash=Math.max(0,breachFlash-dt*.9);smokeTime=Math.max(0,smokeTime-dt);noiseLevel=Math.max(0,noiseLevel-23*dt);
  let fx=Math.sin(player.yaw),fz=-Math.cos(player.yaw),rx=Math.cos(player.yaw),rz=Math.sin(player.yaw),sx=0,sz=0;
  if(keys.KeyW||keys.ArrowUp){sx+=fx;sz+=fz;}if(keys.KeyS||keys.ArrowDown){sx-=fx;sz-=fz;}if(keys.KeyA){sx-=rx;sz-=rz;}if(keys.KeyD){sx+=rx;sz+=rz;}
- let mag=Math.hypot(sx,sz),sprint=!player.crouched&&(keys.ShiftLeft||keys.ShiftRight)&&player.stamina>2&&mag>.1;
- let speed=player.crouched?1.25:sprint?3.8:2.35;
- if(mag>0){sx=sx/mag*speed*dt;sz=sz/mag*speed*dt;if(!blocked(player.x+sx,player.z,.28))player.x+=sx;if(!blocked(player.x,player.z+sz,.28))player.z+=sz;player.bob+=dt*(sprint?1.7:.8);
- footstepTimer-=dt;if(footstepTimer<=0){footstepTimer=player.crouched?.72:sprint?.33:.55;if(!player.crouched)steps();if(sprint)emitNoise(player.x,player.z,7);else if(!player.crouched)emitNoise(player.x,player.z,3.2);}
+ player.stance+= (player.stanceTarget-player.stance)*Math.min(1,dt*9);
+ player.crouched=player.stance<.52;
+ let mag=Math.hypot(sx,sz),sprint=player.stance>.85&&(keys.ShiftLeft||keys.ShiftRight)&&player.stamina>2&&mag>.1;
+ let speed=(.7+2.35*player.pace)*(.52+.48*player.stance)*(sprint?1.55:1);
+ player.moveBlend+=((mag>.1?1:0)-player.moveBlend)*Math.min(1,dt*9);
+ if(mag>0){sx=sx/mag*speed*dt;sz=sz/mag*speed*dt;if(!blocked(player.x+sx,player.z,.28))player.x+=sx;if(!blocked(player.x,player.z+sz,.28))player.z+=sz;player.bob+=dt*speed*.48;player.stepPhase+=dt*speed*6;
+ footstepTimer-=dt;if(footstepTimer<=0){footstepTimer=clamp(.95/(speed+.3),.24,1.4);if(speed>1.05&&player.stance>.45)steps();emitNoise(player.x,player.z,(sprint?7:3.2)*(.25+.75*player.stance)*(.25+.75*player.pace));}
  }else footstepTimer=0;
  player.stamina=clamp(player.stamina+(sprint?-31:22)*dt,0,100);
  if(!noCallWarning&&!called&&elapsed>35){noCallWarning=true;showNotice('YOU NEED TO CALL FOR HELP · BEDROOM DRESSER',3.0);}
@@ -926,6 +933,21 @@ staticMesh.draw();
  breakerMesh.draw(modelMatrix(breakerPos.x,1.52,breakerPos.z));
  if(doorBraced&&!doorBroken)braceMesh.draw(modelMatrix(7.34,1.25,-.04));
  if(smokeTime>0){let d=direction();smokeMesh.draw(modelMatrix(p.x+d.x*1.15,p.y-.09+d.y*.2,p.z+d.z*1.15,now*.003,1+smokeTime));}
+ if(started&&playing){
+  // Camera-relative viewmodel: breathing, locomotion, crouch and strike recovery.
+  const stride=Math.sin(player.stepPhase)*player.moveBlend,breath=Math.sin(now*.0017)*.008;
+  const strike=player.attack>0?Math.sin((1-player.attack/.22)*Math.PI)*.22:0;
+  const forward={x:Math.sin(yaw),z:-Math.cos(yaw)},right={x:Math.cos(yaw),z:Math.sin(yaw)};
+  for(const side of [-1,1]){
+   const reach=side===1?(.50+strike):.42;
+   const sway=stride*.038*(side===1?1:-1);
+   const x=p.x+forward.x*reach+right.x*(side===1?.28:-.31);
+   const z=p.z+forward.z*reach+right.z*(side===1?.28:-.31);
+   const y=p.y-.39+breath+sway+strike*.15;
+   playerSleeveMesh.draw(modelMatrix(x,y-.17,z,-yaw));
+   playerGloveMesh.draw(modelMatrix(x,y-.37,z,-yaw));
+  }
+ }
  for(let a of items){if(a.broken)continue;let x=a.x,y=a.y,z=a.z,ang=a.rot;if(a===held){let dx=Math.sin(yaw),dz=-Math.cos(yaw),rx=Math.cos(yaw),rz=Math.sin(yaw);x=p.x+dx*.76+rx*.34;y=p.y-.37+Math.sin(player.attack*17)*.10;z=p.z+dz*.76+rz*.34;ang=-yaw;}itemMeshes[a.type].draw(modelMatrix(x,y,z,ang));}
 for(let e of enemies){
  let stepping=(e.stun>0?0:Math.sin(e.walk));
@@ -944,4 +966,4 @@ requestAnimationFrame(loop);
 })();
 </script>
 <a href="./index.html" id="return-main-menu" aria-label="Return to main menu" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:1000;padding:10px 17px;background:rgba(8,13,20,.93);border:1px solid #d7a675;color:#f5d2a8;text-decoration:none;font:800 11px/1.2 system-ui,sans-serif;letter-spacing:.12em;box-shadow:0 4px 18px #0008">← MAIN MENU</a>
-</body></html>
+<div id="analog-status" style="position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;background:#07101bbb;border:1px solid #9da8b344;padding:6px 11px;color:#d7c5a8;font:700 11px system-ui;letter-spacing:.06em">WHEEL PACE · C + WHEEL STANCE · SHIFT SPRINT</div></body></html>
