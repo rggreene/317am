@@ -1,13 +1,12 @@
 // Deterministic perception and telegraphed melee for a single intruder.
 import {movementAwareness} from './AnalogLocomotion.js';
 import {sightClear,audibleRange} from '../audio/Occlusion.js';
+import {SEARCH_AREAS,searchAreaPoint} from './RoomNavigation.js';
 // This module knows nothing about Three.js, DOM, audio or animation.
 export const WINDUP_SECONDS=.82;
 export const RECOVERY_SECONDS=1.25;
 export const STRIKE_RANGE=1.18;
-export const SEARCH_POINTS=Object.freeze([
-  {x:2.65,z:2.08},{x:2.72,z:.38},{x:.24,z:.43},{x:-1.12,z:1.90}
-]);
+export const SEARCH_POINTS=Object.freeze(SEARCH_AREAS.map(area=>area.point));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const copy=v=>({x:v.x,z:v.z});
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -111,7 +110,7 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
     }
     brain.lastKnown=null;
     brain.investigation=0;
-    brain.goal=copy(SEARCH_POINTS[brain.searchIndex]);
+    brain.goal=searchAreaPoint(brain.searchIndex);
   }
   brain.mode='search';
   if(distance(enemy,brain.goal)<.32){
