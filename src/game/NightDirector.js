@@ -5,7 +5,7 @@ import {createThreatBrain,tickThreat,interruptThreat,WINDUP_SECONDS} from './Thr
 import {findNavigationPath,navigateStep} from './NavGrid.js';
 import {APARTMENT_BLOCKERS} from './CombatMath.js';
 import {createDoorState,doorBlockers,doorNear,openDoor} from './DoorState.js';
-import {segmentIntersectsBox} from '../audio/Occlusion.js';
+import {segmentIntersectsBox,sightClear} from '../audio/Occlusion.js';
 import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
 import {panFromCamera} from '../audio/AudioSpatial.js';
@@ -186,7 +186,8 @@ export class NightDirector{
     const distance=Math.hypot(player.x-this.enemyPosition.x,
       player.z-this.enemyPosition.z);
     const result=advanceIntruderStrike(this.pendingContact,dt,{
-      distance,
+      distance:sightClear(this.enemyPosition,player,
+        [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)])?distance:Infinity,
       stunned:this.state.enemyStun>0||this.brain.mode==='staggered',
       playing:this.active&&this.state.phase==='playing'
     });
@@ -218,27 +219,6 @@ export class NightDirector{
     const noise=this.pendingNoise;
     this.pendingNoise=null;
     const obstacles=[...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)];
-    const step=tickThreat(this.brain,{
-      dt,enemy:this.enemyPosition,player,moving,running,movementSpeed,stance,
-      flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false,
-      housePower:this.state.breakerOn,soundEvent:noise,blockers:obstacles
-    });
-    const distance=Math.hypot(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
-
-    if(this.doorForceTime>0){
-      this.doorForceTime=Math.max(0,this.doorForceTime-dt);
-      this.target?.setIntent('windup',1-this.doorForceTime/1.15);
-      this.setActorPose('idle');
-      if(this.doorForceTime===0){
-        openDoor(this.interiorDoor,true);
-        this.path=[];
-        this.pathAge=0;
-        this.audio.door();
-        this.emitNoise(this.enemyPosition,4);
-        this.state.message='THE BEDROOM DOOR GIVES WAY.';
-      }
-      return;
-    }
     if(step.telegraph){
       this.state.message='THE INTRUDER DRAWS BACK. MOVE!';
       this.game.combat.setFeedback('DODGE THE STRIKE');
