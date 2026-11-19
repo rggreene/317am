@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {createContactShadows} from '../src/world/ContactShadows.js';
+const group=createContactShadows();
+assert.equal(group.children.length,6,'six furniture contacts expected');
+const texture=group.children[0].material.map;
+assert.equal(texture.image.width,64);
+assert.equal(texture.image.height,64);
+const pixels=texture.image.data;
+const centerAlpha=pixels[(32*64+32)*4+3];
+const edgeAlpha=pixels[3];
+assert.ok(centerAlpha>180,'contact should be visible in center');
+assert.equal(edgeAlpha,0,'contact edges must fade smoothly');
+assert.ok(group.children.every(x=>x.material.transparent&&!x.material.depthWrite));
+assert.ok(group.children.every(x=>x.position.y>0&&x.position.y<.07));
+console.log('Six shared low-cost contact shadows validated');

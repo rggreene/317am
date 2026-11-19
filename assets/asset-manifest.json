@@ -1,0 +1,519 @@
+{
+  "schema_version": 1,
+  "project": "3:17 AM",
+  "branch": "feature/vertical-slice-alpha",
+  "note": "Mixed-status art registry: six procedural furniture GLBs are in_review and load in the game; Intruder v2 and other unbuilt candidates remain planned. A manifest path does not mean a file exists.",
+  "units": "meters",
+  "up_axis_runtime": "Y",
+  "statuses": [
+    "planned",
+    "modeling",
+    "exported",
+    "in_review",
+    "active",
+    "blocked"
+  ],
+  "policies": {
+    "no_automatic_replacement": true,
+    "keep_procedural_fallback": true,
+    "require_three_js_loading_test": true,
+    "require_gameplay_parity": true,
+    "require_first_person_review": true
+  },
+  "assets": [
+    {
+      "id": "room_sofa_2seat",
+      "category": "furniture",
+      "priority": "P0",
+      "status": "in_review",
+      "model_glb": "assets/models/furniture/room_sofa_2seat_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_sofa_2seat_v01.blend",
+      "max_triangles": 12000,
+      "max_materials": 4,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        2.02,
+        0.95,
+        0.94
+      ],
+      "scene_origin_m": [
+        1.5,
+        0,
+        1.26
+      ],
+      "integration": "src/world/buildRoom.js sofa assembly",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB geometry in review, not a Blender-authored final model"
+    },
+    {
+      "id": "room_coffee_table",
+      "category": "furniture",
+      "priority": "P0",
+      "status": "in_review",
+      "model_glb": "assets/models/furniture/room_coffee_table_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_coffee_table_v01.blend",
+      "max_triangles": 4500,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        1.16,
+        0.5,
+        0.66
+      ],
+      "scene_origin_m": [
+        1.49,
+        0,
+        0.17
+      ],
+      "integration": "src/world/buildRoom.js coffee table",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB geometry in review, not a Blender-authored final model"
+    },
+    {
+      "id": "room_rug",
+      "category": "furniture",
+      "priority": "P0",
+      "status": "planned",
+      "model_glb": "assets/models/furniture/room_rug_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_rug_v01.blend",
+      "max_triangles": 1800,
+      "max_materials": 2,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        2.02,
+        0.03,
+        1.37
+      ],
+      "scene_origin_m": [
+        1.49,
+        0,
+        0.27
+      ],
+      "integration": "src/world/buildRoom.js lounge rug"
+    },
+    {
+      "id": "room_media_console",
+      "category": "furniture",
+      "priority": "P0",
+      "status": "in_review",
+      "model_glb": "assets/models/furniture/room_media_console_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_media_console_v01.blend",
+      "max_triangles": 5000,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        1.64,
+        0.4,
+        0.45
+      ],
+      "scene_origin_m": [
+        1.6,
+        0,
+        -2.17
+      ],
+      "integration": "src/world/buildRoom.js media cabinet",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Rendered GLB in review; not a Blender-authored final asset"
+    },
+    {
+      "id": "prop_television",
+      "category": "prop",
+      "priority": "P0",
+      "status": "in_review",
+      "model_glb": "assets/models/props/prop_television_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_television_v01.blend",
+      "max_triangles": 2500,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        1.36,
+        0.88,
+        0.19
+      ],
+      "scene_origin_m": [
+        1.6,
+        1.07,
+        -2.17
+      ],
+      "integration": "src/world/buildRoom.js Television",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Rendered GLB in review; not a Blender-authored final asset"
+    },
+    {
+      "id": "room_bed_dressed",
+      "category": "furniture",
+      "priority": "P0",
+      "status": "in_review",
+      "model_glb": "assets/models/furniture/room_bed_dressed_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_bed_dressed_v01.blend",
+      "max_triangles": 10000,
+      "max_materials": 4,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        1.86,
+        0.85,
+        2.14
+      ],
+      "scene_origin_m": [
+        -1.91,
+        0,
+        -1.36
+      ],
+      "integration": "src/world/buildRoom.js bed and bedding",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB in visual review; not a Blender-authored final production model"
+    },
+    {
+      "id": "room_dresser_phone",
+      "category": "furniture",
+      "priority": "P0",
+      "status": "in_review",
+      "model_glb": "assets/models/furniture/room_dresser_phone_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_dresser_phone_v01.blend",
+      "max_triangles": 5500,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.66,
+        1.16,
+        0.34
+      ],
+      "scene_origin_m": [
+        -2.78,
+        0,
+        1.46
+      ],
+      "integration": "src/world/buildRoom.js phone dresser",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB in visual review; not a Blender-authored final production model"
+    },
+    {
+      "id": "prop_entry_door",
+      "category": "fixture",
+      "priority": "P0",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_entry_door_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_entry_door_v01.blend",
+      "max_triangles": 4800,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.09,
+        2.1,
+        0.88
+      ],
+      "scene_origin_m": [
+        3.11,
+        0,
+        1.98
+      ],
+      "integration": "src/game/buildInteractionProps.js front door"
+    },
+    {
+      "id": "char_intruder_v02",
+      "category": "character",
+      "priority": "P0",
+      "status": "in_review",
+      "model_glb": "assets/models/characters/char_intruder_v02.glb",
+      "source_blend": "assets/source/blender/characters/char_intruder_v02.blend",
+      "max_triangles": 25000,
+      "max_materials": 5,
+      "max_texture_edge_px": 2048,
+      "target_dimensions_m": [
+        1.03,
+        1.91,
+        0.54
+      ],
+      "scene_origin_m": [
+        0.28,
+        0,
+        -0.38
+      ],
+      "integration": "src/actors/IntruderController.js",
+      "contract": "assets/characters/intruder-v2.contract.json",
+      "art_bible": "docs/INTRUDER_V2_ART_BIBLE.md",
+      "production_checklist": "docs/INTRUDER_V2_PRODUCTION_CHECKLIST.md",
+      "technical_spec": "docs/INTRUDER_V2_BLENDER_GLB_SPEC.md",
+      "working_name": "The Uninvited",
+      "art_note": "Original skinned GLB candidate generated by Python: 37 joints, 12 actions, 23,254 tris, four PBR materials. Requires visual review; NOT Blender-sculpted final hero character. Legacy 12-bone fallback retained.",
+      "source_kind": "reproducible_procedural_skinned_glb",
+      "generator": "scripts/generate_intruder_v2.py"
+    },
+    {
+      "id": "vm_player_arms_v01",
+      "category": "viewmodel",
+      "priority": "P0",
+      "status": "planned",
+      "model_glb": "assets/models/characters/vm_player_arms_v01.glb",
+      "source_blend": "assets/source/blender/characters/vm_player_arms_v01.blend",
+      "max_triangles": 16000,
+      "max_materials": 3,
+      "max_texture_edge_px": 2048,
+      "target_dimensions_m": [
+        1.14,
+        0.78,
+        0.65
+      ],
+      "scene_origin_m": null,
+      "integration": "src/game/WeaponRig.js"
+    },
+    {
+      "id": "room_nightstand",
+      "category": "furniture",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/furniture/room_nightstand_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_nightstand_v01.blend",
+      "max_triangles": 2800,
+      "max_materials": 2,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.48,
+        0.68,
+        0.44
+      ],
+      "scene_origin_m": [
+        -2.92,
+        0,
+        -1.28
+      ],
+      "integration": "src/world/buildRoom.js bedside nightstand"
+    },
+    {
+      "id": "room_hall_console",
+      "category": "furniture",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/furniture/room_hall_console_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_hall_console_v01.blend",
+      "max_triangles": 2800,
+      "max_materials": 2,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.53,
+        0.9,
+        0.25
+      ],
+      "scene_origin_m": [
+        -0.52,
+        0,
+        -1.26
+      ],
+      "integration": "src/world/buildRoom.js first aid console"
+    },
+    {
+      "id": "prop_breaker_panel",
+      "category": "fixture",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_breaker_panel_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_breaker_panel_v01.blend",
+      "max_triangles": 1800,
+      "max_materials": 3,
+      "max_texture_edge_px": 512,
+      "target_dimensions_m": [
+        0.08,
+        0.46,
+        0.3
+      ],
+      "scene_origin_m": [
+        3.095,
+        1.39,
+        0.38
+      ],
+      "integration": "src/game/buildInteractionProps.js breaker"
+    },
+    {
+      "id": "prop_floor_lamp",
+      "category": "fixture",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_floor_lamp_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_floor_lamp_v01.blend",
+      "max_triangles": 2400,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.55,
+        1.55,
+        0.55
+      ],
+      "scene_origin_m": [
+        2.81,
+        0,
+        2.08
+      ],
+      "integration": "src/world/buildRoom.js standing practical"
+    },
+    {
+      "id": "prop_fridge",
+      "category": "fixture",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_fridge_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_fridge_v01.blend",
+      "max_triangles": 3800,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.8,
+        1.87,
+        0.75
+      ],
+      "scene_origin_m": [
+        2.79,
+        0,
+        -1.67
+      ],
+      "integration": "src/world/buildRoom.js refrigerator"
+    },
+    {
+      "id": "room_kitchen_counter",
+      "category": "furniture",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/furniture/room_kitchen_counter_v01.glb",
+      "source_blend": "assets/source/blender/furniture/room_kitchen_counter_v01.blend",
+      "max_triangles": 4500,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.99,
+        0.98,
+        0.69
+      ],
+      "scene_origin_m": [
+        2.18,
+        0,
+        -0.75
+      ],
+      "integration": "src/world/buildRoom.js kitchen countertop"
+    },
+    {
+      "id": "kit_window_frame",
+      "category": "architecture",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/architecture/kit_window_frame_v01.glb",
+      "source_blend": "assets/source/blender/architecture/kit_window_frame_v01.blend",
+      "max_triangles": 4200,
+      "max_materials": 2,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        1.4,
+        1.55,
+        0.18
+      ],
+      "scene_origin_m": null,
+      "integration": "src/world/buildRoom.js window apertures and trim"
+    },
+    {
+      "id": "prop_frying_pan_v02",
+      "category": "prop",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_frying_pan_v02.glb",
+      "source_blend": "assets/source/blender/props/prop_frying_pan_v02.blend",
+      "max_triangles": 4000,
+      "max_materials": 3,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.45,
+        0.095,
+        0.3
+      ],
+      "scene_origin_m": null,
+      "integration": "src/game/WeaponRig.js and src/props/loadFryingPan.js"
+    },
+    {
+      "id": "prop_throw_pillows",
+      "category": "decor",
+      "priority": "P2",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_throw_pillows_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_throw_pillows_v01.blend",
+      "max_triangles": 1500,
+      "max_materials": 2,
+      "max_texture_edge_px": 512,
+      "target_dimensions_m": [
+        0.4,
+        0.38,
+        0.18
+      ],
+      "scene_origin_m": [
+        2.21,
+        0.8,
+        1.42
+      ],
+      "integration": "src/world/buildRoom.js lounge throw pillow"
+    },
+    {
+      "id": "prop_folded_throw",
+      "category": "decor",
+      "priority": "P2",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_folded_throw_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_folded_throw_v01.blend",
+      "max_triangles": 2200,
+      "max_materials": 2,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        0.65,
+        0.06,
+        0.68
+      ],
+      "scene_origin_m": [
+        0.96,
+        0.585,
+        1.08
+      ],
+      "integration": "src/world/buildRoom.js folded blanket"
+    },
+    {
+      "id": "prop_phone_objective",
+      "category": "prop",
+      "priority": "P1",
+      "status": "planned",
+      "model_glb": "assets/models/props/prop_phone_objective_v01.glb",
+      "source_blend": "assets/source/blender/props/prop_phone_objective_v01.blend",
+      "max_triangles": 1200,
+      "max_materials": 2,
+      "max_texture_edge_px": 512,
+      "target_dimensions_m": [
+        0.22,
+        0.04,
+        0.14
+      ],
+      "scene_origin_m": [
+        -2.71,
+        1.19,
+        1.46
+      ],
+      "integration": "src/game/buildInteractionProps.js phone"
+    },
+    {
+      "id": "kit_domestic_clutter",
+      "category": "decor",
+      "priority": "P2",
+      "status": "planned",
+      "model_glb": "assets/models/props/kit_domestic_clutter_v01.glb",
+      "source_blend": "assets/source/blender/props/kit_domestic_clutter_v01.blend",
+      "max_triangles": 5000,
+      "max_materials": 4,
+      "max_texture_edge_px": 1024,
+      "target_dimensions_m": [
+        1.5,
+        0.5,
+        1.5
+      ],
+      "scene_origin_m": null,
+      "integration": "src/world/buildRoom.js mugs, mail, keys, shoes, books"
+    }
+  ]
+}

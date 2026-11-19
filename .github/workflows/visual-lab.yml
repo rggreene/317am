@@ -1,0 +1,57 @@
+name: Visual lab and vertical slice build
+on:
+  push:
+    branches:
+      - feature/visual-overhaul
+      - feature/vertical-slice-alpha
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Compile Blender preflight validator (source syntax only)
+        run: python3 -m py_compile scripts/blender/validate_intruder_v2.py
+      - name: Install candidate 3D generator dependencies
+        if: hashFiles('scripts/generate_intruder_v2.py') != '' && hashFiles('assets/models/characters/char_intruder_v02.glb') == ''
+        run: python3 -m pip install -r requirements-art.txt
+      - name: Generate Uninvited v2 character candidate
+        if: hashFiles('scripts/generate_intruder_v2.py') != '' && hashFiles('assets/models/characters/char_intruder_v02.glb') == ''
+        run: python3 scripts/generate_intruder_v2.py
+      - name: Check module syntax and gameplay tests
+        run: npm run check
+      - name: Validate committed GLB assets
+        run: npm run check:assets
+      - name: Verify reproducible furniture GLB exports
+        run: |
+          npm run assets:hero-furniture
+          git diff --exit-code -- assets/models/furniture/ assets/models/props/prop_television_v01.glb
+      - name: Build static site
+        run: npm run build
+      - name: Browser smoke test (software WebGL)
+        run: |
+          mkdir -p artifacts
+          npm run dev -- --host 127.0.0.1 > /tmp/317am-vite.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in {1..40}; do
+            if curl --silent --fail http://127.0.0.1:5173/ > /dev/null; then break; fi
+            sleep 0.3
+          done
+          EXPECT_INTRUDER_V2=1 npm run test:browser
+      - name: Preserve visual smoke screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-slice-smoke
+          path: artifacts/
+          if-no-files-found: ignore

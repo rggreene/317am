@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {impactDirection,dampedSpring} from '../src/game/ImpactQuality.js';
+const target={x:.28,z:-.38};
+assert.ok(impactDirection({x:.28,z:1.8},target).pushZ<0);
+assert.ok(impactDirection({x:.28,z:-2},target).pushZ>0);
+const left=impactDirection({x:-1.2,z:-.38},target);
+const right=impactDirection({x:1.6,z:-.38},target);
+assert.ok(left.pushX>0&&right.pushX<0);
+assert.ok(left.roll>right.roll);
+assert.equal(impactDirection(target,target,0).pushZ,0);
+let value=1,velocity=0;
+for(let i=0;i<180;i++)({value,velocity}=dampedSpring(value,velocity,1/60));
+assert.ok(Math.abs(value)<.001&&Math.abs(velocity)<.01);
+console.log('Impact direction and spring tests passed');

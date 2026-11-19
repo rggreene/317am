@@ -1,0 +1,401 @@
+{
+  "schema_version": 1,
+  "character_id": "char_intruder_v02",
+  "working_name": "The Uninvited",
+  "status": "candidate_in_review",
+  "source_blend": "assets/source/blender/characters/char_intruder_v02.blend",
+  "output_glb": "assets/models/characters/char_intruder_v02.glb",
+  "current_fallback": "assets/models/intruder_rig.glb",
+  "target_branch": "feature/vertical-slice-alpha",
+  "geometry": {
+    "meters_per_unit": 1,
+    "runtime_axes": {
+      "up": "+Y",
+      "forward": "+Z",
+      "right": "+X"
+    },
+    "blender_axes": {
+      "up": "+Z",
+      "forward": "-Y",
+      "right": "+X"
+    },
+    "origin": "ground_center_between_feet",
+    "feet_floor_y_m": 0,
+    "dimensions_xyz_m": [
+      1.03,
+      1.91,
+      0.54
+    ],
+    "dimension_tolerance_relative": [
+      0.1,
+      0.04,
+      0.12
+    ],
+    "triangles_target_min": 18000,
+    "triangles_target_max": 24000,
+    "triangles_hard_cap": 25000,
+    "optional_lod1_triangles_max": 11000,
+    "max_materials": 5,
+    "max_draw_calls_desired": 5,
+    "max_texture_edge_px": 2048,
+    "skin_influences_per_vertex_max": 4,
+    "suggested_height_clavicle_m": 1.58,
+    "legacy_actor_reaction_pivot_y_m": 0.96,
+    "source_mesh_names": [
+      "Body",
+      "Coat",
+      "Hood",
+      "Trousers",
+      "Gloves",
+      "Boots"
+    ],
+    "file_size_target_mb": 8,
+    "mesh_method": "reproducible_parametric_skinned_glb_not_hand_sculpted"
+  },
+  "skeleton": {
+    "armature_object": "ARM_IntruderV2",
+    "export_rig_root": "Root",
+    "expected_deform_bones": 36,
+    "legacy_compatibility_bones": [
+      "Pelvis",
+      "Spine",
+      "Neck",
+      "Head",
+      "Shoulder_L",
+      "Shoulder_R",
+      "Elbow_L",
+      "Elbow_R",
+      "Thigh_L",
+      "Thigh_R",
+      "Knee_L",
+      "Knee_R"
+    ],
+    "additional_bones": [
+      "Root",
+      "Spine_Lower",
+      "Spine_Upper",
+      "Clavicle_L",
+      "Clavicle_R",
+      "Wrist_L",
+      "Wrist_R",
+      "Hand_L",
+      "Hand_R",
+      "Thumb_01_L",
+      "Thumb_01_R",
+      "Thumb_02_L",
+      "Thumb_02_R",
+      "Index_01_L",
+      "Index_01_R",
+      "Index_02_L",
+      "Index_02_R",
+      "FingerCurl_L",
+      "FingerCurl_R",
+      "Ankle_L",
+      "Ankle_R",
+      "Foot_L",
+      "Foot_R",
+      "Toe_L",
+      "Toe_R"
+    ],
+    "required_bones": [
+      "Pelvis",
+      "Spine",
+      "Neck",
+      "Head",
+      "Shoulder_L",
+      "Shoulder_R",
+      "Elbow_L",
+      "Elbow_R",
+      "Thigh_L",
+      "Thigh_R",
+      "Knee_L",
+      "Knee_R",
+      "Root",
+      "Spine_Lower",
+      "Spine_Upper",
+      "Clavicle_L",
+      "Clavicle_R",
+      "Wrist_L",
+      "Wrist_R",
+      "Hand_L",
+      "Hand_R",
+      "Thumb_01_L",
+      "Thumb_01_R",
+      "Thumb_02_L",
+      "Thumb_02_R",
+      "Index_01_L",
+      "Index_01_R",
+      "Index_02_L",
+      "Index_02_R",
+      "FingerCurl_L",
+      "FingerCurl_R",
+      "Ankle_L",
+      "Ankle_R",
+      "Foot_L",
+      "Foot_R",
+      "Toe_L",
+      "Toe_R"
+    ],
+    "orientation": "A_pose",
+    "hierarchy": {
+      "Root": [
+        "Pelvis"
+      ],
+      "Pelvis": [
+        "Spine_Lower",
+        "Thigh_L",
+        "Thigh_R"
+      ],
+      "Spine_Lower": [
+        "Spine"
+      ],
+      "Spine": [
+        "Spine_Upper"
+      ],
+      "Spine_Upper": [
+        "Neck",
+        "Clavicle_L",
+        "Clavicle_R"
+      ],
+      "Neck": [
+        "Head"
+      ],
+      "Clavicle_L": [
+        "Shoulder_L"
+      ],
+      "Clavicle_R": [
+        "Shoulder_R"
+      ],
+      "Shoulder_L": [
+        "Elbow_L"
+      ],
+      "Shoulder_R": [
+        "Elbow_R"
+      ],
+      "Elbow_L": [
+        "Wrist_L"
+      ],
+      "Elbow_R": [
+        "Wrist_R"
+      ],
+      "Wrist_L": [
+        "Hand_L"
+      ],
+      "Wrist_R": [
+        "Hand_R"
+      ],
+      "Hand_L": [
+        "Thumb_01_L",
+        "Index_01_L",
+        "FingerCurl_L"
+      ],
+      "Hand_R": [
+        "Thumb_01_R",
+        "Index_01_R",
+        "FingerCurl_R"
+      ],
+      "Thumb_01_L": [
+        "Thumb_02_L"
+      ],
+      "Thumb_01_R": [
+        "Thumb_02_R"
+      ],
+      "Index_01_L": [
+        "Index_02_L"
+      ],
+      "Index_01_R": [
+        "Index_02_R"
+      ],
+      "Thigh_L": [
+        "Knee_L"
+      ],
+      "Thigh_R": [
+        "Knee_R"
+      ],
+      "Knee_L": [
+        "Ankle_L"
+      ],
+      "Knee_R": [
+        "Ankle_R"
+      ],
+      "Ankle_L": [
+        "Foot_L"
+      ],
+      "Ankle_R": [
+        "Foot_R"
+      ],
+      "Foot_L": [
+        "Toe_L"
+      ],
+      "Foot_R": [
+        "Toe_R"
+      ]
+    }
+  },
+  "materials": {
+    "slots": [
+      {
+        "name": "M_JacketCloth",
+        "max_resolution_px": 2048,
+        "has_orm": true,
+        "has_normal": true
+      },
+      {
+        "name": "M_FaceSkin",
+        "max_resolution_px": 1024,
+        "has_orm": true,
+        "has_normal": true
+      },
+      {
+        "name": "M_GlovesBoots",
+        "max_resolution_px": 1024,
+        "has_orm": true,
+        "has_normal": true
+      },
+      {
+        "name": "M_MinorTrim",
+        "max_resolution_px": 512,
+        "has_orm": true,
+        "has_normal": false
+      }
+    ],
+    "workflow": "metallic_roughness",
+    "required_channels": [
+      "basecolor",
+      "normal",
+      "orm"
+    ],
+    "expected_color_space": {
+      "basecolor": "sRGB",
+      "normal": "linear",
+      "orm": "linear"
+    },
+    "alpha_policy": "opaque_default",
+    "forbidden": [
+      "emissive_eyes",
+      "unlicensed_external_textures"
+    ]
+  },
+  "animations": {
+    "frame_rate_fps": 30,
+    "source_actions_use_same_names": true,
+    "runtime_required_clips": [
+      "idle",
+      "walk",
+      "attack",
+      "stagger"
+    ],
+    "preferred_v2_clips": [
+      {
+        "name": "idle",
+        "duration_ms": 3600,
+        "playback": "loop",
+        "required_for_v2": true
+      },
+      {
+        "name": "walk",
+        "duration_ms": 1100,
+        "playback": "loop",
+        "required_for_v2": true
+      },
+      {
+        "name": "attack",
+        "duration_ms": 520,
+        "playback": "once",
+        "required_for_v2": true,
+        "contact_ms": 180
+      },
+      {
+        "name": "stagger",
+        "duration_ms": 800,
+        "playback": "once",
+        "required_for_v2": true
+      },
+      {
+        "name": "idle_listen",
+        "duration_ms": 3000,
+        "playback": "loop",
+        "required_for_v2": true
+      },
+      {
+        "name": "search",
+        "duration_ms": 3200,
+        "playback": "loop",
+        "required_for_v2": true
+      },
+      {
+        "name": "notice",
+        "duration_ms": 650,
+        "playback": "once",
+        "required_for_v2": true
+      },
+      {
+        "name": "windup",
+        "duration_ms": 820,
+        "playback": "once",
+        "required_for_v2": true
+      },
+      {
+        "name": "recover",
+        "duration_ms": 1250,
+        "playback": "once",
+        "required_for_v2": true
+      },
+      {
+        "name": "pursue",
+        "duration_ms": 850,
+        "playback": "loop",
+        "required_for_v2": true
+      },
+      {
+        "name": "turn_left",
+        "duration_ms": 700,
+        "playback": "once",
+        "required_for_v2": false
+      },
+      {
+        "name": "turn_right",
+        "duration_ms": 700,
+        "playback": "once",
+        "required_for_v2": false
+      }
+    ],
+    "strike_event": {
+      "windup_ms": 820,
+      "swing_start_after_windup_ms": 0,
+      "visible_contact_after_attack_start_ms": 180,
+      "apply_damage_at_contact": true,
+      "one_damage_check_per_attempt": true,
+      "allow_dodge_until_contact": true,
+      "interrupt_before_contact": true
+    },
+    "export_note": "Separate named actions or NLA tracks. glTF 2.0 has no guaranteed general-purpose contact event; drive contact via sidecar timing in JS."
+  },
+  "integration": {
+    "existing_controller": "src/actors/IntruderController.js",
+    "existing_director": "src/game/NightDirector.js",
+    "existing_perception": "src/game/ThreatBrain.js",
+    "runtime_functions_to_preserve": [
+      "setClip",
+      "setIntent",
+      "update",
+      "reactToImpact",
+      "setBasePosition",
+      "getTarget"
+    ],
+    "first_import_status": "in_review",
+    "do_not_apply_legacy_sculpt_on_v2": true,
+    "fallback_when_missing_invalid": true,
+    "do_not_change_player_collision": true,
+    "zero_changes_to_main": true,
+    "acceptance_views": [
+      "front_neutral",
+      "profile_neutral",
+      "back_neutral",
+      "moonlit_search",
+      "lamplit_windup",
+      "firstperson_contact",
+      "side_stagger"
+    ]
+  }
+}
