@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import {createNight,beginNight,tickNight,nightEvent,nightObjective,nearestInteractable} from './SurvivalRules.js';
+import {createNight,beginNight,tickNight,nightEvent,nightObjective,
+  focusedInteractable,THREAT_DELAY,BARRICADE_DELAY} from './SurvivalRules.js';
+import {createThreatBrain,tickThreat,interruptThreat} from './ThreatBrain.js';
 import {findNavigationPath,navigateStep} from './NavGrid.js';
 import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
 
-const THREAT_SPAWN={x:2.73,z:2.12};
-const ENEMY_SPEED=.67;
-const ATTACK_RANGE=1.08;
+const ENTRY={x:2.73,z:2.12};
+const WALK_SPEED=.67;
 const REPATH_INTERVAL=.65;
 
 export class NightDirector{
@@ -16,168 +17,236 @@ export class NightDirector{
     this.props=buildInteractionProps(game.view.scene);
     this.audio=new NightAudio();
     this.active=false;
-    this.heldTarget=null;
     this.path=[];
     this.pathAge=0;
-    this.enemyPosition={...THREAT_SPAWN};
+    this.enemyPosition={...ENTRY};
     this.actorState='idle';
+    this.brain=createThreatBrain();
+    this.entryWarningIssued=false;
     this.lastStepAt=-100;
-    this.interactable=null;
-    this.feedbackTimer=0;
     this.endedHandled=false;
     this.lastPhase='idle';
+    this.interactable=null;
     this.updatePresentation();
   }
 
-  get actor(){
-    return this.game.riggedIntruder?.group??this.game.intruder.group;
-  }
-  get target(){
-    return this.game.riggedIntruder;
-  }
-  showEnemy(visible){
-    this.actor.visible=visible;
-  }
+  get actor(){return this.game.riggedIntruder?.group??this.game.intruder.group;}
+  get target(){return this.game.riggedIntruder;}
+
+  showEnemy(visible){this.actor.visible=visible;}
   setEnemyPosition(x,z){
     this.enemyPosition.x=x;
     this.enemyPosition.z=z;
-    if(this.game.riggedIntruder){
-      this.game.riggedIntruder.setBasePosition(x,z);
-    }else{
-      this.game.intruder.group.position.set(x,0,z);
-    }
+    if(this.target)this.target.setBasePosition(x,z);
+    else this.game.intruder.group.position.set(x,0,z);
   }
   onRigReady(){
     this.setEnemyPosition(this.enemyPosition.x,this.enemyPosition.z);
     this.showEnemy(!this.active||this.state.enemyEntered);
   }
   enter(){
-    if(this.state.phase==='won'||this.state.phase==='lost'){
-      this.restart();
-    }else{
-      beginNight(this.state);
-    }
+    if(this.state.phase==='won'||this.state.phase==='lost')this.restart();
+    else beginNight(this.state);
     this.active=true;
     this.showEnemy(this.state.enemyEntered);
     this.pathAge=0;
-    this.audio.enter();
     this.endedHandled=false;
+    this.audio.enter();
     this.updatePresentation();
   }
   pause(){
     this.active=false;
     this.audio.pause();
-    this.showEnemy(true); // Orbit lab remains useful for inspection.
+    this.showEnemy(true); // Keep actor visible for orbit-mode inspection.
     this.updatePresentation();
   }
   restart(){
     this.state=createNight();
+    this.brain=createThreatBrain();
+    this.entryWarningIssued=false;
     this.endedHandled=false;
     this.lastPhase='idle';
     this.path=[];
     this.pathAge=0;
     this.actorState='idle';
-    this.setEnemyPosition(THREAT_SPAWN.x,THREAT_SPAWN.z);
+    this.lastStepAt=-100;
+    this.setEnemyPosition(ENTRY.x,ENTRY.z);
+    this.target?.setClip('idle');
     this.active=true;
     beginNight(this.state);
     this.showEnemy(false);
-    this.game.combat.hitCount=0;
-    this.game.combat.weapon.setVisible(true);
-    this.game.combat.weapon.swingTime=.76;
-    this.game.combat.keys.clear();
-    this.game.combat.yaw=-.10;
-    this.game.combat.pitch=-.085;
+
+    const combat=this.game.combat;
+    combat.hitCount=0;
+    combat.weapon.setVisible(true);
+    combat.weapon.swingTime=.76;
+    combat.weapon.hitStop=0;
+    combat.keys.clear();
+    combat.yaw=-.10;
+    combat.pitch=-.085;
+    combat.hurtTime=0;
+    combat.root.classList.remove('player-hurt','impact','miss','hit-confirm');
     this.game.view.camera.position.set(.05,1.64,1.70);
-    this.game.combat.weapon.hitStop=0;
     const counter=document.querySelector('#hit-count');
     if(counter)counter.textContent='0';
     this.audio.enter();
     this.updatePresentation();
   }
-  interact(){
-    if(!this.active||this.state.phase!=='playing')return;
-    const camera=this.game.view.camera;
-    const item=nearestInteractable({x:camera.position.x,z:camera.position.z},
-      this.props.items.map(it=>({...it,disabled:this.isDisabled(it.id)})));
-    if(!item){
-      this.game.combat.setFeedback('NOT CLOSE ENOUGH TO INTERACT');
-      return;
-    }
-    let accepted=false;
-    switch(item.id){
-      case 'phone':accepted=nightEvent(this.state,'phone');if(accepted)this.audio.call();break;
-      case 'door':accepted=nightEvent(this.state,'barricade');if(accepted)this.audio.door();break;
-      case 'breaker':accepted=nightEvent(this.state,'breaker');if(accepted)this.audio.click();break;
-      case 'medkit':accepted=nightEvent(this.state,'medkit');if(accepted)this.audio.click();break;
-    }
-    if(accepted){
-      this.game.combat.setFeedback(this.state.message);
-      this.updatePresentation();
-    }else this.game.combat.setFeedback('ALREADY USED OR UNAVAILABLE');
-  }
+
   isDisabled(id){
     const s=this.state;
     return id==='phone'?s.helpCalled:
       id==='door'?s.doorSecured||s.enemyEntered:
       id==='medkit'?s.medkitUsed||s.health>=100:false;
   }
+  focusedItem(){
+    const camera=this.game.view.camera;
+    const direction=new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    return focusedInteractable(
+      {x:camera.position.x,z:camera.position.z},
+      {x:direction.x,z:direction.z},
+      this.props.items.map(item=>({...item,disabled:this.isDisabled(item.id)}))
+    );
+  }
+  interact(){
+    if(!this.active||this.state.phase!=='playing')return;
+    const item=this.focusedItem();
+    if(!item){
+      this.game.combat.setFeedback('FACE AN OBJECT AND MOVE CLOSER');
+      return;
+    }
+    let accepted=false;
+    switch(item.id){
+      case 'phone':
+        accepted=nightEvent(this.state,'phone');
+        if(accepted)this.audio.call();
+        break;
+      case 'door':
+        accepted=nightEvent(this.state,'barricade');
+        if(accepted)this.audio.door();
+        break;
+      case 'breaker':
+        accepted=nightEvent(this.state,'breaker');
+        if(accepted)this.audio.click();
+        break;
+      case 'medkit':
+        accepted=nightEvent(this.state,'medkit');
+        if(accepted)this.audio.click();
+        break;
+    }
+    if(accepted){
+      this.game.combat.setFeedback(this.state.message);
+      this.updatePresentation();
+    }else{
+      this.game.combat.setFeedback('ALREADY USED OR UNAVAILABLE');
+    }
+  }
   onPlayerHit(){
     if(!this.active||!this.state.enemyEntered||this.state.phase!=='playing')return;
     nightEvent(this.state,'stun');
+    interruptThreat(this.brain);
+    this.actorState='stagger';
+    this.pathAge=0;
     this.updatePresentation();
   }
+  setActorPose(name){
+    if(name===this.actorState)return;
+    this.actorState=name;
+    this.target?.setClip(name);
+  }
   enemyTick(dt){
-    const s=this.state;
-    if(!s.enemyEntered||s.phase!=='playing')return;
-    if(s.enemyStun>0)return;
+    if(!this.state.enemyEntered||this.state.phase!=='playing')return;
+    if(this.state.enemyStun>0)return;
+
     const player=this.game.view.camera.position;
-    const dx=player.x-this.enemyPosition.x,dz=player.z-this.enemyPosition.z;
-    const distance=Math.hypot(dx,dz);
-    if(distance<ATTACK_RANGE){
-      this.actorState='attack';
-      this.target?.setClip('attack');
-      const hit=nightEvent(s,'hit');
-      if(hit){
-        this.audio.hurt();
-        this.game.combat.root.classList.add('player-hurt');
-        this.game.combat.hurtTime=.31;
-        this.game.combat.setFeedback(s.message);
-        this.game.combat.cameraKick.velocity+=.15;
+    const keys=this.game.combat.keys;
+    const moving=['KeyW','KeyA','KeyS','KeyD'].some(code=>keys.has(code));
+    const running=moving&&keys.has('ShiftLeft');
+    const step=tickThreat(this.brain,{
+      dt,enemy:this.enemyPosition,player,moving,running,
+      flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false
+    });
+    const distance=Math.hypot(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
+
+    if(step.telegraph){
+      this.state.message='THE INTRUDER DRAWS BACK. MOVE!';
+      this.game.combat.setFeedback('DODGE THE STRIKE');
+      this.audio.warning();
+    }
+    if(step.mode==='staggered'){
+      this.setActorPose('stagger');
+      return;
+    }
+    if(step.mode==='windup'){
+      this.setActorPose('idle');
+      return;
+    }
+    if(step.mode==='attack'){
+      this.setActorPose('attack');
+      if(step.strike){
+        const hit=nightEvent(this.state,'hit');
+        if(hit){
+          this.audio.hurt();
+          this.game.combat.root.classList.add('player-hurt');
+          this.game.combat.hurtTime=.31;
+          this.game.combat.setFeedback(this.state.message);
+          this.game.combat.cameraKick.velocity+=.15;
+        }
+      }else{
+        this.audio.miss();
+        this.state.message='IT SWUNG AT EMPTY AIR. KEEP MOVING.';
       }
       return;
     }
-    this.actorState='walk';
-    this.target?.setClip('walk');
+    if(step.mode==='recover'){
+      if(this.brain.recovery<.62)this.setActorPose('idle');
+      return;
+    }
+
+    this.setActorPose('walk');
+    const goal=step.goal;
+    if(!goal)return;
     this.pathAge-=dt;
-    if(this.pathAge<=0||this.path.length===0){
-      this.path=findNavigationPath(this.enemyPosition,{x:player.x,z:player.z});
+    if(this.pathAge<=0||this.path.length===0||
+      Math.hypot(this.path[this.path.length-1].x-goal.x,
+        this.path[this.path.length-1].z-goal.z)>.7){
+      this.path=findNavigationPath(this.enemyPosition,goal);
       this.pathAge=REPATH_INTERVAL;
     }
     if(this.path.length){
-      const point=this.path[0];
-      const next=navigateStep(this.enemyPosition,point,ENEMY_SPEED,dt);
+      const waypoint=this.path[0];
+      const speed=step.mode==='pursue'?WALK_SPEED*1.42:WALK_SPEED*.83;
+      const next=navigateStep(this.enemyPosition,waypoint,speed,dt);
       this.setEnemyPosition(next.x,next.z);
-      if(Math.hypot(this.enemyPosition.x-point.x,this.enemyPosition.z-point.z)<.075){
-        this.path.shift();
-      }
-      if(this.state.elapsed-this.lastStepAt>.9){
+      if(Math.hypot(next.x-waypoint.x,next.z-waypoint.z)<.075)this.path.shift();
+      if(this.state.elapsed-this.lastStepAt>.95){
         this.lastStepAt=this.state.elapsed;
         this.audio.step(this.state.elapsed,true,distance);
       }
     }
     if(this.target){
-      const turn=Math.atan2(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
-      this.target.group.rotation.y=turn;
+      this.target.group.rotation.y=Math.atan2(
+        goal.x-this.enemyPosition.x,goal.z-this.enemyPosition.z
+      );
     }
   }
   update(dt){
     if(!this.active||this.state.phase!=='playing')return;
-    const beforeEntered=this.state.enemyEntered;
+    const hadEntered=this.state.enemyEntered;
     tickNight(this.state,dt);
-    if(!beforeEntered&&this.state.enemyEntered){
-      this.setEnemyPosition(THREAT_SPAWN.x,THREAT_SPAWN.z);
+    const entryTime=THREAT_DELAY+(this.state.doorSecured?BARRICADE_DELAY:0);
+    if(!this.entryWarningIssued&&!this.state.enemyEntered&&this.state.elapsed>=entryTime-3){
+      this.entryWarningIssued=true;
+      this.state.message='A DOOR HANDLE TURNS. THE HOUSE GOES QUIET.';
+      this.audio.warning();
+    }
+    if(!hadEntered&&this.state.enemyEntered){
+      this.setEnemyPosition(ENTRY.x,ENTRY.z);
       this.showEnemy(true);
       this.pathAge=0;
+      this.brain=createThreatBrain();
+      this.setActorPose('idle');
       this.audio.door();
       this.game.combat.setFeedback(this.state.message);
     }
@@ -185,16 +254,14 @@ export class NightDirector{
       this.enemyTick(Math.min(dt,.05));
       this.audio.heartbeat(this.state.elapsed,this.state.health);
     }
-    const combat=this.game.combat;
-    const player=this.game.view.camera.position;
-    const forward=Number(combat.keys.has('KeyW'))-Number(combat.keys.has('KeyS'));
-    const sideways=Number(combat.keys.has('KeyD'))-Number(combat.keys.has('KeyA'));
-    if(forward||sideways)this.audio.step(this.state.elapsed,false);
+
+    const keys=this.game.combat.keys;
+    if(['KeyW','KeyA','KeyS','KeyD'].some(code=>keys.has(code))){
+      this.audio.step(this.state.elapsed,false);
+    }
     if(!this.endedHandled&&['won','lost'].includes(this.state.phase)){
       this.endedHandled=true;
-      if(document.pointerLockElement===this.game.combat.canvas){
-        document.exitPointerLock?.();
-      }
+      if(document.pointerLockElement===this.game.combat.canvas)document.exitPointerLock?.();
       this.game.combat.keys.clear();
       this.audio.pause();
     }
@@ -207,25 +274,29 @@ export class NightDirector{
   }
   updatePresentation(){
     const s=this.state;
-    this.props.update(s);
-    // Power control intentionally affects practical lights, not player flashlight.
+    const focused=this.active&&s.phase==='playing'?this.focusedItem():null;
+    this.props.update(s,focused?.id??null);
     this.game.setBreakerPower?.(s.breakerOn);
     this.audio.setPower(s.breakerOn);
     const set=(id,value)=>{
       const node=document.querySelector(id);
       if(node)node.textContent=value;
     };
-    const remaining=Math.ceil(s.remaining);
-    set('#night-clock',String(Math.floor(remaining/60)).padStart(2,'0')+':'+
-      String(remaining%60).padStart(2,'0'));
+    const seconds=Math.ceil(s.remaining);
+    set('#night-clock',String(Math.floor(seconds/60)).padStart(2,'0')+':'+
+      String(seconds%60).padStart(2,'0'));
     set('#night-health',String(s.health).padStart(3,'0')+'%');
     set('#night-objective',nightObjective(s));
     set('#night-message',s.message);
-    const camera=this.game.view.camera;
-    const nearby=nearestInteractable({x:camera.position.x,z:camera.position.z},
-      this.props.items.map(item=>({...item,disabled:this.isDisabled(item.id)})));
-    this.interactable=nearby;
-    set('#interaction-hint',nearby?'[ E ]  '+nearby.hint:'MOVE CLOSE TO AN OBJECT AND PRESS E');
+    this.interactable=focused;
+    set('#interaction-hint',focused?'[ E ]  '+focused.hint:
+      'FACE AN OBJECT AND MOVE CLOSE TO INTERACT');
+    set('#threat-indicator',!s.enemyEntered?'HOUSE QUIET':
+      s.enemyStun>0?'INTRUDER STAGGERED':
+      this.brain.mode==='windup'?'INCOMING STRIKE':
+      this.brain.mode==='pursue'?'FOOTSTEPS APPROACHING':
+      this.brain.mode==='search'?'FOOTSTEPS SEARCHING':
+      this.brain.mode==='recover'?'INTRUDER RECOVERING':'PRESENCE DETECTED');
     const hud=document.querySelector('#night-hud');
     if(hud){
       hud.classList.toggle('night-ended',s.phase==='won'||s.phase==='lost');
@@ -238,7 +309,9 @@ export class NightDirector{
     set('#night-end-title',s.phase==='won'?'YOU SURVIVED':'THE NIGHT WON');
     set('#night-end-copy',s.phase==='won'?
       'The sirens finally reach your street. You held on long enough.':
-      s.helpCalled?'Dispatch was on the way. It was not fast enough.':'You never called for help.');
-    this.game.rootElement.classList.toggle('night-ending',this.active&&(s.phase==='won'||s.phase==='lost'));
+      s.helpCalled?'Dispatch was on the way. It was not fast enough.':
+      'You never called for help.');
+    this.game.rootElement.classList.toggle('night-ending',
+      this.active&&(s.phase==='won'||s.phase==='lost'));
   }
 }
