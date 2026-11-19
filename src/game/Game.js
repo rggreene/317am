@@ -24,6 +24,7 @@ export class Game {
     this.rootElement=root;
     this.view=createRenderer(canvas);
     this.flashlightOn=true;
+    this.dreadLightFactor=1;
     this.moody=true;
     this.fpsVisible=false;
     this.elapsed=0;
@@ -272,6 +273,10 @@ export class Game {
     this.livingLamp.intensity=(this.moody?8.0:4.8)*strength;
     this.tv.intensity=(this.moody?3.4:1.7)*strength;
     this.panLight.intensity=(this.moody?8:3)*strength;
+    const flicker=this.dreadLightFactor??1;
+    this.lamp.intensity*=flicker;
+    this.livingLamp.intensity*=flicker;
+    this.tv.intensity*=flicker;
   }
   configureLighting(){
     this.ambient.intensity=this.moody?.48:1.40;
