@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {WeaponRig} from './WeaponRig.js';
 import {ImpactAudio} from '../audio/ImpactAudio.js';
 import {dampedSpring} from './ImpactQuality.js';
-import {isMeleeHit,moveWithCollision} from './CombatMath.js';
+import {isMeleeHit,moveWithCollision,APARTMENT_BLOCKERS,PLAYER_RADIUS} from './CombatMath.js';
 import {createAnalogMovement,adjustAnalogMovement,eyeHeightFor,speedFor,
   paceDescription,stanceDescription,STANDING_EYE_HEIGHT,MAX_PACE}
   from './AnalogLocomotion.js';
@@ -22,6 +22,7 @@ export class CombatLab{
     this.eyeHeight=PLAYER_HEIGHT;
     this.currentSpeed=0;
     this.actualSpeed=0;
+    this.getCollisionBlockers=()=>APARTMENT_BLOCKERS;
     this.yaw=-.10;this.pitch=-.085;this.walkClock=0;this.hitCount=0;
     this.flashTime=0;this.statusTime=0;this.markerTime=0;
     this.direction=new THREE.Vector3();
@@ -191,7 +192,8 @@ export class CombatLab{
     const mz=(-Math.cos(this.yaw)*forward-Math.sin(this.yaw)*strafe)/
       mag*this.currentSpeed*dt;
     const oldX=camera.position.x,oldZ=camera.position.z;
-    const next=moveWithCollision(oldX,oldZ,mx,mz);
+    const next=moveWithCollision(oldX,oldZ,mx,mz,PLAYER_RADIUS,
+      this.getCollisionBlockers());
     camera.position.x=next.x;camera.position.z=next.z;
     // Actual distance matters: walking into a blocked sofa makes no footfall.
     this.actualSpeed=dt>0?
