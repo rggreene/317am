@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#080d13" />
+  <title>3:17 AM — Vertical Slice Alpha</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="scene" aria-label="Three-dimensional preview of the 3:17 AM apartment"></canvas>
+    <div id="error" role="alert" hidden></div>
+    <header class="top">
+      <div class="brand"><span class="time">3:17 AM</span><span class="edition">VERTICAL SLICE ALPHA · PRIVATE DEVELOPMENT</span></div>
+      <button id="play-mode" type="button" class="status mode-button"><span class="light"></span><span>ENTER FIRST PERSON  [V]</span></button>
+    </header>
+    <section class="intro">
+      <p class="overline">SOMEONE IS INSIDE</p>
+      <h1>Don't turn on the lights.</h1>
+      <p>A phone call. A reinforced door. Seventy-five seconds. Make it to the sirens.</p>
+    </section>
+    <footer class="bottom">
+      <div id="help"><b>EXPLORE</b><span>Drag to orbit · Scroll to zoom</span><span><kbd>V</kbd> Survival mode</span><span><kbd>E</kbd> Pan · <kbd>R</kbd> Intruder close-up</span><span><kbd>1</kbd> Idle · <kbd>2</kbd> Walk</span><span><kbd>3</kbd> Attack · <kbd>4</kbd> Stagger</span><span><kbd>G</kbd> Ambient light</span><span><kbd>F</kbd> Flashlight</span><span><kbd>O</kbd> FPS</span><span><kbd>P</kbd> Graphics quality</span><span><kbd>H</kbd> Hide UI</span></div>
+      <div class="note"><strong>R&D MILESTONE 07 · VERTICAL SLICE</strong><span><span id="asset-status">Loading frying pan GLB...</span><span id="inspect-mode">APARTMENT OVERVIEW · E PAN · R INTRUDER</span></span><span id="intruder-status">Loading intruder GLB...</span><span id="clip-status">INTRUDER: WAITING</span><span id="quality-indicator">QUALITY: BALANCED · P TO CHANGE</span><span id="fps" hidden>-- FPS</span></div>
+    </footer>
+    <div id="fps-hud">
+      <section id="night-hud" aria-label="Survival status">
+        <div class="night-topline"><span id="night-clock">01:15</span><span id="night-health">100%</span></div>
+        <div id="night-objective">FIND THE PHONE. CALL FOR HELP.</div>
+        <div id="night-message">Call for help. Barricade the door. Survive until dawn.</div>
+        <div id="threat-indicator" aria-live="off">HOUSE QUIET</div>
+        <div id="interaction-hint">MOVE CLOSE TO AN OBJECT AND PRESS E</div>
+      </section>
+      <div class="practice-heading">
+        <strong>3:17 AM · SURVIVAL NIGHT</strong>
+        <span id="mode-status">PRACTICE MODE · CLICK TO CAPTURE</span><span id="quality-play">GRAPHICS BALANCED · P TO CHANGE</span>
+      </div>
+      <section id="movement-hud" aria-label="Movement stance and speed" aria-live="off">
+        <div class="movement-row">
+          <span id="stance-readout">STANCE · STANDING</span>
+          <div class="movement-track" aria-hidden="true"><i id="stance-meter"></i></div>
+        </div>
+        <div class="movement-row">
+          <span id="pace-readout">PACE · 1.75 M/S · WALK</span>
+          <div class="movement-track" aria-hidden="true"><i id="pace-meter"></i></div>
+        </div>
+        <div class="movement-help">WHEEL PACE · HOLD C + WHEEL STANCE</div>
+      </section>
+      <div id="crosshair" aria-hidden="true"><span></span><span></span></div>
+      <div id="combat-feedback" role="status">CLICK SCENE TO CAPTURE THE MOUSE</div>
+      <div class="combat-footer">
+        <span><b>WASD</b> MOVE <b>WHEEL</b> PACE <b>C + WHEEL</b> STANCE <b>SHIFT</b> SPRINT <b>LEFT CLICK</b> PAN <b>E</b> INTERACT</span>
+        <span><b>V</b> ORBIT <b>ESC</b> RELEASE MOUSE <b>M</b> MUTE <b>P</b> QUALITY <b>N</b> RESTART</span>
+      </div>
+      <div class="hit-counter">HITS LANDED <strong id="hit-count">0</strong></div>
+    </div>
+    <div id="hit-overlay" aria-hidden="true"></div>
+    <div id="night-end" hidden>
+      <div class="night-end-inner">
+        <div class="overline">3:17 AM · AFTERMATH</div>
+        <h2 id="night-end-title">YOU SURVIVED</h2>
+        <p id="night-end-copy"></p>
+        <p>Press <kbd>N</kbd> to try another night, or <kbd>V</kbd> to return to the apartment lab.</p>
+        <button id="night-restart" type="button">RESTART THE NIGHT</button>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
