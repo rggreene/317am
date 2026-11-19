@@ -86,8 +86,8 @@ export class Game {
       canHit:()=>Boolean(this.night?.state?.enemyEntered&&this.night?.state?.phase==='playing'),
       onHit:({attacker})=>{
         if(this.riggedIntruder)this.riggedIntruder.reactToImpact(attacker);
-        this.night?.onPlayerHit();
         else this.intruder.animate(this.elapsed);
+        this.night?.onPlayerHit();
       }
     });
     this.night=new NightDirector(this);
