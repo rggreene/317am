@@ -74,6 +74,7 @@ export class NightDirector{
     this.pendingNoise=null;
     this.active=false;
     this.audio.pause();
+    this.audio.setSilence(false);
     this.game.dreadLightFactor=1;
     this.showEnemy(true); // Keep actor visible for orbit-mode inspection.
     this.updatePresentation();
@@ -87,6 +88,9 @@ export class NightDirector{
     this.doorForceTime=0;
     this.doorListenTime=0;
     this.doorListenTriggered=false;
+    this.dread=createDreadState();
+    this.game.dreadLightFactor=1;
+    this.audio.setSilence(false);
     this.entryWarningIssued=false;
     this.endedHandled=false;
     this.lastPhase='idle';
@@ -378,6 +382,7 @@ export class NightDirector{
         this.audio.environmentCue?.(cue.kind);
       }
       this.game.dreadLightFactor=this.dread.dim;
+      this.audio.setSilence(this.dread.silence>0&&!near);
       const combatStep=Math.min(dt,.05);
       this.resolveContact(combatStep);
       this.enemyTick(combatStep);
@@ -395,6 +400,8 @@ export class NightDirector{
       if(document.pointerLockElement===this.game.combat.canvas)document.exitPointerLock?.();
       this.game.combat.keys.clear();
       this.audio.pause();
+      this.audio.setSilence(false);
+      this.game.dreadLightFactor=1;
     }
     if(this.state.phase!==this.lastPhase){
       if(this.state.phase==='won')this.audio.call();
