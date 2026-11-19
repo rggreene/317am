@@ -158,6 +158,8 @@ export class Game {
         onWarning:message=>console.warn('[Optional art fallback]',message)
       });
       const imported=result.filter(x=>x.status==='replaced');
+      this.rootElement.dataset.heroArtStatus='ready';
+      this.rootElement.dataset.heroGlbs=imported.map(x=>x.id).join(',');
       if(imported.length)console.info('Imported reviewed art models:',imported.map(x=>x.id));
     }catch(error){
       // Optional art must never prevent the playable survival loop from loading.

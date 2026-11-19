@@ -25,7 +25,7 @@
       "id": "room_sofa_2seat",
       "category": "furniture",
       "priority": "P0",
-      "status": "planned",
+      "status": "in_review",
       "model_glb": "assets/models/furniture/room_sofa_2seat_v01.glb",
       "source_blend": "assets/source/blender/furniture/room_sofa_2seat_v01.blend",
       "max_triangles": 12000,
@@ -41,13 +41,16 @@
         0,
         1.26
       ],
-      "integration": "src/world/buildRoom.js sofa assembly"
+      "integration": "src/world/buildRoom.js sofa assembly",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB geometry in review, not a Blender-authored final model"
     },
     {
       "id": "room_coffee_table",
       "category": "furniture",
       "priority": "P0",
-      "status": "planned",
+      "status": "in_review",
       "model_glb": "assets/models/furniture/room_coffee_table_v01.glb",
       "source_blend": "assets/source/blender/furniture/room_coffee_table_v01.blend",
       "max_triangles": 4500,
@@ -63,7 +66,10 @@
         0,
         0.17
       ],
-      "integration": "src/world/buildRoom.js coffee table"
+      "integration": "src/world/buildRoom.js coffee table",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB geometry in review, not a Blender-authored final model"
     },
     {
       "id": "room_rug",
