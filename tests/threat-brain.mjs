@@ -61,3 +61,19 @@ assert.equal(tickThreat(lowSil,{...cover,stance:0}).mode,'search',
   'lowered posture should reduce ambient-light silhouette');
 assert.equal(tickThreat(highSil,{...cover,stance:1}).mode,'pursue',
   'upright posture remains visible under the same light');
+
+// Losing sight should cause an investigation at the last known location,
+// not an immediate return to patrol or an omniscient chase.
+const investigator=createThreatBrain();
+const farAway={x:9,z:9};
+tickThreat(investigator,{dt:.05,enemy:{x:0,z:0},player:{x:2,z:0}});
+for(let i=0;i<45;i++){
+  tickThreat(investigator,{dt:.1,enemy:{x:0,z:0},player:farAway,housePower:false});
+}
+let investigate=tickThreat(investigator,{dt:.1,enemy:{x:0,z:0},player:farAway,housePower:false});
+assert.equal(investigate.mode,'investigate');
+assert.deepEqual(investigate.goal,{x:2,z:0});
+for(let i=0;i<13;i++){
+  investigate=tickThreat(investigator,{dt:.1,enemy:{x:2,z:0},player:farAway,housePower:false});
+}
+assert.equal(investigate.mode,'search','intruder resumes patrol after investigating');
