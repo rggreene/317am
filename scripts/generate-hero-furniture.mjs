@@ -130,19 +130,24 @@ function buildAssets(){
     const primitives=[];let triangles=0;
     for(let mi=0;mi<items.length;mi++){
       const g=items[mi];if(!g.p.length)continue;
-      const normals=new Float32Array(g.p.length);
+      // Millimeter-substep quantization makes generated geometry identical
+      // across V8 revisions; trig folds otherwise drift at float32 boundaries.
+      const positions=new Float32Array(g.p.map(value=>Math.round(value*10000)/10000));
+      const normals=new Float32Array(positions.length);
       for(let t=0;t<g.indices.length;t+=3){
         const ia=g.indices[t]*3,ib=g.indices[t+1]*3,ic=g.indices[t+2]*3;
-        const ax=g.p[ib]-g.p[ia],ay=g.p[ib+1]-g.p[ia+1],az=g.p[ib+2]-g.p[ia+2];
-        const bx=g.p[ic]-g.p[ia],by=g.p[ic+1]-g.p[ia+1],bz=g.p[ic+2]-g.p[ia+2];
+        const ax=positions[ib]-positions[ia],ay=positions[ib+1]-positions[ia+1],az=positions[ib+2]-positions[ia+2];
+        const bx=positions[ic]-positions[ia],by=positions[ic+1]-positions[ia+1],bz=positions[ic+2]-positions[ia+2];
         const nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx;
         for(const i of [ia,ib,ic]){normals[i]+=nx;normals[i+1]+=ny;normals[i+2]+=nz;}
       }
       for(let i=0;i<normals.length;i+=3){
         const norm=Math.hypot(normals[i],normals[i+1],normals[i+2])||1;
-        normals[i]/=norm;normals[i+1]/=norm;normals[i+2]/=norm;
+        normals[i]=Math.round(normals[i]/norm*100000)/100000;
+        normals[i+1]=Math.round(normals[i+1]/norm*100000)/100000;
+        normals[i+2]=Math.round(normals[i+2]/norm*100000)/100000;
       }
-      const pos=pack(new Float32Array(g.p),5126,'VEC3',34962);
+      const pos=pack(positions,5126,'VEC3',34962);
       const normal=pack(normals,5126,'VEC3',34962);
       const uv=pack(new Float32Array(g.uv),5126,'VEC2',34962);
       const idx=pack(new Uint16Array(g.indices),5123,'SCALAR',34963);
