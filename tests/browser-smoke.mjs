@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import {mkdirSync} from 'node:fs';
+import {chromium} from 'playwright-core';
+
+const url=process.env.TEST_URL||'http://127.0.0.1:5173';
+const errors=[];
+mkdirSync('artifacts',{recursive:true});
+const browser=await chromium.launch({
+  channel:'chrome',headless:true,
+  args:[
+    '--no-sandbox','--disable-dev-shm-usage',
+    '--enable-webgl','--use-gl=angle','--use-angle=swiftshader',
+    '--enable-unsafe-swiftshader'
+  ]
+});
+try{
+  const page=await browser.newPage({
+    viewport:{width:1280,height:720},
+    deviceScaleFactor:1
+  });
+  page.on('pageerror',error=>errors.push(error.stack||error.message));
+  await page.goto(url,{waitUntil:'load',timeout:20000});
+  const banner=page.locator('#error');
+  await page.waitForFunction(()=>document.querySelector('#intruder-status')?.textContent.includes('loaded')&&
+    document.querySelector('#asset-status')?.textContent.includes('loaded'),
+    null,{timeout:24000});
+  assert.equal(await banner.isVisible(),false,'WebGL startup failed');
+  await page.screenshot({path:'artifacts/apartment-orbit.png'});
+  await page.keyboard.press('v');
+  await page.waitForFunction(()=>document.querySelector('#app')?.classList.contains('fps-mode'));
+  assert.equal(await page.locator('#night-end').isVisible(),false,'win/loss modal showed at game start');
+  const start=await page.locator('#night-clock').innerText();
+  assert.match(start,/^0[01]:[0-5][0-9]$/,'timer incorrectly formatted');
+  await page.waitForTimeout(1250);
+  const next=await page.locator('#night-clock').innerText();
+  assert.notEqual(next,start,'survival timer never started');
+  await page.keyboard.press('p');
+  assert.match(await page.locator('#quality-play').innerText(),/CINEMATIC/);
+  await page.screenshot({path:'artifacts/survival-fps.png'});
+  await page.keyboard.press('v');
+  assert.equal(await page.locator('#fps-hud').isVisible(),false,'orbit mode not restored');
+  assert.equal(await page.locator('#night-end').isVisible(),false,'end overlay blocked orbit mode');
+  assert.deepEqual(errors,[],'uncaught errors in the browser');
+  console.log('Chrome/WebGL smoke test passed: both GLBs, timer, view modes and quality profile');
+}finally{
+  await browser.close();
+}
