@@ -29,6 +29,8 @@ export class NightDirector{
     this.brain=createThreatBrain();
     this.interiorDoor=createDoorState();
     this.doorForceTime=0;
+    this.doorListenTime=0;
+    this.doorListenTriggered=false;
     this.game.combat.getCollisionBlockers=()=>
       [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)];
     this.entryWarningIssued=false;
@@ -80,6 +82,8 @@ export class NightDirector{
     this.brain=createThreatBrain();
     this.interiorDoor=createDoorState();
     this.doorForceTime=0;
+    this.doorListenTime=0;
+    this.doorListenTriggered=false;
     this.entryWarningIssued=false;
     this.endedHandled=false;
     this.lastPhase='idle';
@@ -208,7 +212,11 @@ export class NightDirector{
   }
   enemyTick(dt){
     if(!this.state.enemyEntered||this.state.phase!=='playing')return;
-    if(this.state.enemyStun>0){this.doorForceTime=0;return;}
+    if(this.state.enemyStun>0){
+      this.doorForceTime=0;
+      this.doorListenTime=0;
+      return;
+    }
 
     const player=this.game.view.camera.position;
     const keys=this.game.combat.keys;
@@ -219,6 +227,20 @@ export class NightDirector{
     const noise=this.pendingNoise;
     this.pendingNoise=null;
     const obstacles=[...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)];
+    if(this.doorListenTime>0){
+      // An audible movement behind the door ends the listening pause early.
+      const nearbyNoise=moving&&Math.hypot(player.x-this.enemyPosition.x,
+        player.z-this.enemyPosition.z)<2.4&&movementSpeed>.9;
+      this.doorListenTime=nearbyNoise?0:Math.max(0,this.doorListenTime-dt);
+      this.target?.setIntent('idle_listen');
+      this.setActorPose('idle');
+      if(this.doorListenTime===0){
+        this.doorForceTime=1.15;
+        this.state.message='THE HANDLE TURNS. THE WOOD BEGINS TO BEND.';
+        this.audio.doorRattle?.();
+      }
+      return;
+    }
     if(this.doorForceTime>0){
       this.doorForceTime=Math.max(0,this.doorForceTime-dt);
       this.target?.setIntent('windup',1-this.doorForceTime/1.15);
@@ -278,11 +300,18 @@ export class NightDirector{
     // the passage and force it before continuing into the next area.
     const doorInWay=doorBlocksRoute(this.enemyPosition,goal,this.interiorDoor);
     if(doorInWay&&doorNear(this.enemyPosition,1.05)){
-      this.doorForceTime=1.15;
+      if(!this.doorListenTriggered){
+        this.doorListenTime=1.6;
+        this.doorListenTriggered=true;
+        this.state.message='FOOTSTEPS STOP. SOMEONE IS LISTENING AT THE DOOR.';
+        this.audio.doorListen?.();
+      }else{
+        this.doorForceTime=1.15;
+        this.state.message='THE HANDLE TURNS. THE WOOD BEGINS TO BEND.';
+        this.audio.doorRattle?.();
+      }
       this.path=[];
       this.pathAge=0;
-      this.state.message='WOOD CREAKS. SOMETHING LEANS AGAINST THE BEDROOM DOOR.';
-      this.audio.warning();
       this.setActorPose('idle');
       return;
     }
