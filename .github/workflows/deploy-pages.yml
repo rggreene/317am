@@ -3,7 +3,7 @@ name: Deploy 3:17 AM preview to GitHub Pages
 on:
   push:
     branches:
-      - feature/vertical-slice-alpha
+      - main
   workflow_dispatch:
 
 permissions:
