@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {segmentIntersectsBox,obstructionCount,sightClear,audibleRange} from '../src/audio/Occlusion.js';
+const box={minX:1,maxX:2,minZ:-.5,maxZ:.5};
+const a={x:0,z:0},b={x:3,z:0};
+assert.equal(segmentIntersectsBox(a,b,box),true);
+assert.equal(segmentIntersectsBox(a,{x:0,z:3},box),false);
+assert.equal(sightClear(a,b,[box]),false);
+assert.equal(sightClear(a,b,[]),true);
+assert.equal(obstructionCount(a,b,[box,box]),2);
+assert.ok(audibleRange(5,a,b,[box])<5);
+assert.equal(audibleRange(5,a,b,[]),5);
+console.log('Apartment occlusion geometry and acoustic attenuation passed');
