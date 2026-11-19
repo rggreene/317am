@@ -1,5 +1,5 @@
 # The Uninvited v2 — Production & Acceptance Checklist
-**3:17 AM** · **Production status: NOT STARTED** · **Candidate:** `char_intruder_v02.glb`
+**3:17 AM** · **Production status: FIRST GLB CANDIDATE IN REVIEW — FINAL SCULPT PENDING** · **Candidate:** `char_intruder_v02.glb`
 
 Use this as the single tracking document for the character. The exact specifications live in the [Art Bible](INTRUDER_V2_ART_BIBLE.md), [Blender/GLB Spec](INTRUDER_V2_BLENDER_GLB_SPEC.md), and [machine contract](../assets/characters/intruder-v2.contract.json). Nothing here marks the model as finished; each checkbox requires a produced artifact or verified test.
 
@@ -149,4 +149,4 @@ Use this as the single tracking document for the character. The exact specificat
 
 On any failed export, unreadable face, broken animation, invalid GLB, significant FPS regression, unreachable enemy state or mistimed damage, keep the *existing* legacy intruder active and revert candidate changes without touching `main`.
 
-**Status at time of writing:** this package defines the design and all production gates. The new `.blend`, GLB, animation clips, atlases and integration code have **not** been delivered. The old prototype remains playable.
+**Current status:** the parametric skinned v2 GLB, 37 bones, 12 actions, embedded PBR maps and guarded game integration exist. A Blender artist-quality sculpt and actual `.blend` source do not; the provided Blender import script is not yet executed. Visual acceptance gates remain open. The original is still accessible via `?intruder=legacy`.

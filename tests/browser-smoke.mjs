@@ -76,6 +76,16 @@ try{
   await page.keyboard.press('v');
   assert.equal(await page.locator('#fps-hud').isVisible(),false,'orbit mode not restored');
   assert.equal(await page.locator('#night-end').isVisible(),false,'end overlay blocked orbit mode');
+  // Verify the original rig remains available for honest A/B review and
+  // protects the survival build if the candidate later regresses.
+  const legacyUrl=new URL(url);
+  legacyUrl.searchParams.set('intruder','legacy');
+  await page.goto(legacyUrl.toString(),{waitUntil:'load',timeout:20000});
+  await page.waitForFunction(()=>document.querySelector('#app')?.dataset.intruderVariant==='legacy',
+    null,{timeout:24000});
+  await page.keyboard.press('r');
+  await page.waitForTimeout(450);
+  await page.screenshot({path:'artifacts/artreview-intruder-legacy.png'});
   assert.deepEqual(errors,[],'uncaught errors in the browser');
   console.log('Chrome/WebGL smoke test passed: both GLBs, timer, view modes and quality profile');
 }finally{

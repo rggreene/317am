@@ -1,6 +1,6 @@
 # The Uninvited v2 — Character Art Bible
 **Project:** 3:17 AM · **Discipline:** Character art, costume and performance
-**Version:** v2.0 direction lock · **Stage:** Design/production package, **not an exported character**
+**Version:** v2.0 direction lock · **Stage:** First procedural GLB candidate integrated and in review; not an approved final sculpt
 **Technical companion:** [Blender/GLB Spec](INTRUDER_V2_BLENDER_GLB_SPEC.md)
 **Acceptance:** [Production Checklist](INTRUDER_V2_PRODUCTION_CHECKLIST.md)
 **Machine-readable contract:** [intruder-v2.contract.json](../assets/characters/intruder-v2.contract.json)
@@ -157,4 +157,4 @@ Avoid in concept references: helmet, military tactical suit, zombie skin, skull 
 
 Score each 1–5 in the actual game viewport: **human believability, silhouette readability, material credibility, animation anticipation, pose/weight, low-light face readability, performance**. A model must average **≥4** with no category below **3** at first-person gameplay distance before status changes from `in_review` to `active`. Subjective review is required even if every CI test passes.
 
-**This document is a production art bible only. No v2 GLB, Blender source, texture maps or professional animation has been created by writing it.**
+**Implementation update:** a 23,254-triangle original procedural v2 GLB now exists with 37 joints, 12 clips and embedded PBR maps. It passes Chrome and technical tests, but the in-game character still reads as a procedural mannequin, not the photoreal concept. A professionally authored/retopologized Blender model and animations remain to be produced; this bible is the quality standard, not proof of its completion.

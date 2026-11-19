@@ -53,7 +53,11 @@ function validateCandidate(asset){
 }
 
 async function loadBestIntruder(){
-  const url=Object.values(candidateGlbs)[0];
+  // Visual A/B without altering the branch: default to v2 on the review
+  // branch; ?intruder=legacy forces the proven 12-bone character.
+  const forceLegacy=typeof window!=='undefined'&&
+    new URLSearchParams(window.location.search).get('intruder')==='legacy';
+  const url=forceLegacy?null:Object.values(candidateGlbs)[0];
   if(url){
     try{
       const candidate=await loadGLB(url);

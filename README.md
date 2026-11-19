@@ -28,7 +28,7 @@ We have an **approved technical direction**, not yet a finished replacement mode
 
 **Design decision:** an ordinary, lean adult human intruder; worn charcoal work jacket and soft hood, visible human face, no supernatural eyes or theatrical armor.
 
-**Important remaining engineering issue:** the current game applies enemy damage when `attack` begins after the 0.82-second windup. The v2 spec requires **visible contact 0.18 seconds into the attack** before damage is evaluated. That timing change is planned, not implemented by these documents. No authored v2 GLB, `.blend`, new texture atlas or final animation set has been delivered.
+**Update:** the model now exists as a **procedurally authored, four-material skinned GLB** (`char_intruder_v02.glb`) with 37 joints, 12 named animations and 23,254 triangles. GitHub Actions builds and validates it. It remains **in_review** because the face and clothing are still unmistakably stylized/procedural, not professional sculpted hero art. The **attack damage is now evaluated 0.18 seconds after the animation begins**, and can be dodged or interrupted. Blender source does not yet exist; run the supplied Blender importer to convert the GLB into an editable `.blend` for further authoring.
 
 ## Play locally
 
@@ -139,3 +139,12 @@ The bed and four-drawer phone dresser now also export as independent runtime glT
 ## Entertainment-wall GLBs
 
 The media console and television are now separate compact glTF models generated from the same source script, with a visible stand, low-profile frame and cabinet drawer details. Their manifest entries remain `in_review`; like the living-room and bedroom models, they retain automatic fallback on load or dimension validation failure.
+
+### Compare intruders and edit the model
+
+- **Review candidate:** launch `npm run dev` and open `http://localhost:5173/?intruder=v2` (also the default on this feature branch).
+- **Original fallback:** open `http://localhost:5173/?intruder=legacy` and press **R** in orbit mode to inspect.
+- Both branches use the same enemy gameplay logic and attack-contact timing; only the visual model/animation source changes.
+- Generate the model reproducibly with `python3 -m pip install -r requirements-art.txt` then `npm run assets:intruder-v2`.
+- On a machine with Blender installed, import the GLB as editable Blender source using `blender -b --python scripts/blender/import_intruder_v2.py`.
+- A full-quality hand-authored retopology, better face, and weight paint remain the next art pass. No screenshot in the concept board is proof of in-engine photorealism.

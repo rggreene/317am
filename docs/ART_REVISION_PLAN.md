@@ -232,3 +232,7 @@ All six entries are `in_review` in the asset manifest, meaning the runtime uses 
 ### Intruder v2 production specialization
 
 Character art has its own [art bible](INTRUDER_V2_ART_BIBLE.md), [production checklist](INTRUDER_V2_PRODUCTION_CHECKLIST.md), [precise Blender/GLB spec](INTRUDER_V2_BLENDER_GLB_SPEC.md) and [machine-readable rig/animation contract](../assets/characters/intruder-v2.contract.json). These specialized v2 documents supersede earlier *provisional* character size/animation targets in this general plan. Candidate status remains `planned` until the actual skinned file and source exist.
+
+### The Uninvited v2 prototype candidate (2026-11-19)
+
+A skinned 23,254-triangle procedural v2 GLB now exists and is imported on the review branch with 37 skeleton joints, 12 actions and embedded PBR textures. The `src/game/AttackContact.js` timing layer evaluates damage 180 ms into the attack after an 820 ms windup, with cancellation if the player dodges or interrupts the attack. Technical tests are green, but **visual quality is not yet an authored Blender hero model** and needs retopology, human face and clothing work. Compare the prototype via `?intruder=v2` and the fallback via `?intruder=legacy`; do not promote the asset to `active` before art review.

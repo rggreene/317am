@@ -1,7 +1,7 @@
 # The Uninvited v2 — Exact Blender → GLB Technical Specification
 **Companion:** [Art Bible](INTRUDER_V2_ART_BIBLE.md) · [Checklist](INTRUDER_V2_PRODUCTION_CHECKLIST.md)
 **Canonical numerical contract:** [`assets/characters/intruder-v2.contract.json`](../assets/characters/intruder-v2.contract.json)
-**Status:** Preproduction specification; **no `char_intruder_v02.glb` has been authored or shipped**.
+**Status:** Procedural skinned GLB candidate exported and integrated under review; a professionally sculpted Blender `.blend` and finished art are still pending.
 
 ## 0. How this relates to our actual game
 
@@ -18,8 +18,8 @@ Our target is a **new, truly skinned production character GLB** replacing the pr
 | Blender axes | +Z up, model visually facing **−Y** |
 | Exported glTF / Three.js axes | +Y up, character forward **+Z**, right +X |
 | Origin | Ground-level center between boots, local `(0,0,0)` in glTF |
-| Source target size | **0.73 × 1.90 × 0.52 m** (runtime X width, Y height, Z depth) |
-| Target bounds tolerance | Width ±12%, height ±4%, depth ±15% (includes clothing), require floor contact |
+| Source target size | **1.03 × 1.91 × 0.54 m** (runtime X width, Y height, Z depth; actual worn sleeves/arms require a wider envelope) |
+| Target bounds tolerance | Width ±10%, height ±4%, depth ±12% (includes clothing), require floor contact |
 | Max triangles (entire character) | **25,000**; preferred 18,000–22,000 |
 | Deform joints | **36 + one nondeforming `Root`** (37 named rig bones total) |
 | Max weighted influences | **4** per vertex; normalized after export |
@@ -258,4 +258,4 @@ The Blender validator is a *source-file* preflight and cannot stand in for **exp
 - Full 75-second game, restart and orbit-inspection flows pass with no missing model or skinning errors.
 - Never merge into `main` or deploy publicly without approval.
 
-**The v2 candidate remains a specification until actual exported Blender/GLB files exist, are integrated, tested and reviewed.**
+**Candidate implementation note:** A real 23,254-triangle / 37-joint / 12-action procedural GLB now exists and passes in-game tests, but it remains **in_review** and is not hand-sculpted final character art. Use `?intruder=legacy` to compare the original; `.blend` source requires a Blender import/re-authoring pass.
