@@ -13,7 +13,7 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 export function createThreatBrain(){
   return {mode:'search',goal:copy(SEARCH_POINTS[1]),lastKnown:null,
     memory:0,windup:0,recovery:0,searchIndex:1,investigation:0,searchPause:0,searchPaused:false,
-    soundGoal:null,soundMemory:0};
+    soundGoal:null,soundMemory:0,alert:0,searchSweep:0,searchAnchor:null};
 }
 export function interruptThreat(brain){
   brain.mode='staggered';brain.windup=0;brain.recovery=Math.max(brain.recovery,.55);
@@ -34,7 +34,10 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
   const heard=moving&&range<audibleRange(hearing,enemy,player,blockers);
   const visible=range<sight&&sightClear(enemy,player,blockers);
   // Close proximity is still perceptible, even when furniture obscures sight.
-  const detected=range<.8||heard||visible;
+  // Hearing provides a last audible location, not a permanent visual lock.
+  const detected=range<.8||visible;
+  const heardPosition=heard?copy(player):null;
+  brain.alert=clamp(brain.alert+(visible?step*1.5:heard?step*.65:-step*.22),0,1);
   if(soundEvent&&Number.isFinite(soundEvent.x)&&Number.isFinite(soundEvent.z)){
     const source={x:soundEvent.x,z:soundEvent.z};
     const loudness=Math.max(0,soundEvent.range??0);
@@ -43,10 +46,15 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
       brain.soundMemory=8;
     }
   }
+  if(heardPosition&&!detected){
+    brain.soundGoal=heardPosition;
+    brain.soundMemory=Math.max(brain.soundMemory,3.8);
+  }
   if(detected){
     brain.lastKnown=copy(player);
     brain.memory=4.3;
     brain.investigation=0;
+    brain.searchAnchor=null;
     brain.soundGoal=null;
     brain.soundMemory=0;
   }else{
@@ -89,6 +97,8 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
     brain.goal=copy(brain.soundGoal);
     if(distance(enemy,brain.goal)<.32){
       brain.soundMemory=0;
+      brain.searchAnchor=copy(brain.goal);
+      brain.searchSweep=2.4;
       brain.soundGoal=null;
       brain.lastKnown=null;
       brain.investigation=0;
@@ -108,9 +118,24 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
     if(brain.investigation<1.2){
       return {mode:'investigate',goal:null,telegraph:false,strike:false,heard:false};
     }
+    brain.searchAnchor=copy(brain.goal);
+    brain.searchSweep=2.4;
     brain.lastKnown=null;
     brain.investigation=0;
     brain.goal=searchAreaPoint(brain.searchIndex);
+  }
+  // Sweep the last known area before returning to the room circuit.
+  if(brain.searchSweep>0&&brain.searchAnchor){
+    brain.mode='search';
+    brain.searchSweep=Math.max(0,brain.searchSweep-step);
+    const t=2.4-brain.searchSweep;
+    const goal={x:brain.searchAnchor.x+Math.sin(t*2.7)*.65,
+      z:brain.searchAnchor.z+Math.cos(t*2.7)*.65};
+    if(brain.searchSweep===0){
+      brain.searchAnchor=null;
+      brain.goal=searchAreaPoint(brain.searchIndex);
+    }
+    return {mode:'search',goal,telegraph:false,strike:false,heard:false};
   }
   brain.mode='search';
   if(distance(enemy,brain.goal)<.32){
