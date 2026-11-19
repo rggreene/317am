@@ -3,6 +3,9 @@ import {createNight,beginNight,tickNight,nightEvent,nightObjective,
   focusedInteractable,THREAT_DELAY,BARRICADE_DELAY} from './SurvivalRules.js';
 import {createThreatBrain,tickThreat,interruptThreat,WINDUP_SECONDS} from './ThreatBrain.js';
 import {findNavigationPath,navigateStep} from './NavGrid.js';
+import {APARTMENT_BLOCKERS} from './CombatMath.js';
+import {createDoorState,doorBlockers,doorNear,openDoor} from './DoorState.js';
+import {segmentIntersectsBox} from '../audio/Occlusion.js';
 import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
 import {panFromCamera} from '../audio/AudioSpatial.js';
@@ -24,6 +27,7 @@ export class NightDirector{
     this.enemyPosition={...ENTRY};
     this.actorState='idle';
     this.brain=createThreatBrain();
+    this.interiorDoor=createDoorState();
     this.entryWarningIssued=false;
     this.pendingContact=null;
     this.lastStepAt=-100;
@@ -71,6 +75,7 @@ export class NightDirector{
     this.pendingNoise=null;
     this.state=createNight();
     this.brain=createThreatBrain();
+    this.interiorDoor=createDoorState();
     this.entryWarningIssued=false;
     this.endedHandled=false;
     this.lastPhase='idle';
@@ -208,10 +213,11 @@ export class NightDirector{
     const running=moving&&movementSpeed>2.35;
     const noise=this.pendingNoise;
     this.pendingNoise=null;
+    const obstacles=[...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)];
     const step=tickThreat(this.brain,{
       dt,enemy:this.enemyPosition,player,moving,running,movementSpeed,stance,
       flashlight:this.game.flashlightOn&&this.game.flashlight?.visible!==false,
-      housePower:this.state.breakerOn,soundEvent:noise
+      housePower:this.state.breakerOn,soundEvent:noise,blockers:obstacles
     });
     const distance=Math.hypot(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
 
@@ -251,6 +257,18 @@ export class NightDirector{
       this.path=[];
       return;
     }
+    // A closed interior door interrupts the route. The intruder must reach
+    // the passage and force it before continuing into the next area.
+    const doorBox=doorBlockers(this.interiorDoor)[0];
+    if(doorBox&&segmentIntersectsBox(this.enemyPosition,goal,doorBox)){
+      if(doorNear(this.enemyPosition,1.05)){
+        openDoor(this.interiorDoor,true);
+        this.path=[];
+        this.pathAge=0;
+        this.audio.door();
+        this.emitNoise(this.enemyPosition,4);
+      }
+    }
     this.setActorPose('walk');
     this.pathAge-=dt;
     if(this.pathAge<=0||this.path.length===0||
@@ -262,7 +280,8 @@ export class NightDirector{
     if(this.path.length){
       const waypoint=this.path[0];
       const speed=step.mode==='pursue'?WALK_SPEED*1.42:WALK_SPEED*.83;
-      const next=navigateStep(this.enemyPosition,waypoint,speed,dt);
+      const next=navigateStep(this.enemyPosition,waypoint,speed,dt,
+        [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)]);
       this.setEnemyPosition(next.x,next.z);
       if(Math.hypot(next.x-waypoint.x,next.z-waypoint.z)<.075)this.path.shift();
       if(this.state.elapsed-this.lastStepAt>.95){
@@ -328,7 +347,7 @@ export class NightDirector{
   updatePresentation(){
     const s=this.state;
     const focused=this.active&&s.phase==='playing'?this.focusedItem():null;
-    this.props.update(s,focused?.id??null);
+    this.props.update(s,focused?.id??null,this.interiorDoor);
     this.game.setBreakerPower?.(s.breakerOn);
     this.audio.setPower(s.breakerOn);
     const set=(id,value)=>{
