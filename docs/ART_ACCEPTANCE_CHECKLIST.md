@@ -86,3 +86,7 @@ artreview_viewmodel_contact.png
 ## Stop conditions
 
 Stop or revert an art substitution if it breaks gameplay navigation, hides an objective, loses an animation clip, produces major shading artifacts, or materially degrades the Balanced preset without a corresponding visible benefit. A green automated build is necessary but not sufficient.
+
+## Automated clean-art screenshots
+
+The Chrome/WebGL smoke workflow captures `artreview-livingroom-clean.png` and `artreview-intruder-clean.png` with the HUD hidden, in addition to its original UI-bearing screenshots. Press **H** in game for the same UI-free view. These captures are a visual-review baseline, not proof of final photorealism.

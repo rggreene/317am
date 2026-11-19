@@ -97,3 +97,6 @@ kbd{display:inline-flex;justify-content:center;min-width:19px;padding:3px 6px;ma
 @media (prefers-reduced-motion:reduce) {
   #night-hud{backdrop-filter:none}
 }
+
+/* H now hides all HUD layers, including first-person survival overlays. */
+#app.hide-ui #fps-hud{display:none!important}

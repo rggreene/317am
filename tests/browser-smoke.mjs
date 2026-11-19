@@ -35,9 +35,14 @@ try{
   assert.ok(loadedHeroArt?.includes('room_bed_dressed'), 'bed GLB did not replace fallback');
   assert.ok(loadedHeroArt?.includes('room_dresser_phone'), 'dresser GLB did not replace fallback');
   await page.screenshot({path:'artifacts/apartment-orbit.png'});
-  // Inspect the bone-driven art directly as well as the full apartment.
+  // Capture honest unobstructed art reviews in addition to the HUD snapshots.
+  await page.keyboard.press('h');
+  await page.waitForTimeout(160);
+  await page.screenshot({path:'artifacts/artreview-livingroom-clean.png'});
   await page.keyboard.press('r');
   await page.waitForTimeout(1250);
+  await page.screenshot({path:'artifacts/artreview-intruder-clean.png'});
+  await page.keyboard.press('h');
   await page.screenshot({path:'artifacts/intruder-closeup.png'});
   await page.keyboard.press('r');
   await page.waitForTimeout(850);
