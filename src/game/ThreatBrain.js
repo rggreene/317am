@@ -12,7 +12,7 @@ const copy=v=>({x:v.x,z:v.z});
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 export function createThreatBrain(){
   return {mode:'search',goal:copy(SEARCH_POINTS[1]),lastKnown:null,
-    memory:0,windup:0,recovery:0,searchIndex:1,investigation:0,searchPause:0,
+    memory:0,windup:0,recovery:0,searchIndex:1,investigation:0,searchPause:0,searchPaused:false,
     soundGoal:null,soundMemory:0};
 }
 export function interruptThreat(brain){
@@ -72,9 +72,9 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
     brain.mode='recover';
     brain.recovery=RECOVERY_SECONDS;
     return {mode:'attack',goal:null,telegraph:false,
-      strike:range<=STRIKE_RANGE,heard};
+      strike:range<=STRIKE_RANGE&&sightClear(enemy,player,blockers),heard};
   }
-  if(range<=STRIKE_RANGE&&brain.memory>0){
+  if(range<=STRIKE_RANGE&&brain.memory>0&&sightClear(enemy,player,blockers)){
     brain.mode='windup';
     brain.windup=WINDUP_SECONDS;
     return {mode:'windup',goal:null,telegraph:true,strike:false,heard};
@@ -114,15 +114,20 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
   }
   brain.mode='search';
   if(distance(enemy,brain.goal)<.32){
-    if(brain.searchPause===0)brain.searchPause=.75;
+    if(!brain.searchPaused){
+      brain.searchPaused=true;
+      brain.searchPause=.75;
+    }
     brain.searchPause=Math.max(0,brain.searchPause-step);
     if(brain.searchPause>0){
       return {mode:'search',goal:null,telegraph:false,strike:false,heard:false};
     }
     brain.searchIndex=(brain.searchIndex+1)%SEARCH_POINTS.length;
-    brain.goal=copy(SEARCH_POINTS[brain.searchIndex]);
+    brain.goal=searchAreaPoint(brain.searchIndex);
+    brain.searchPaused=false;
   }else{
     brain.searchPause=0;
+    brain.searchPaused=false;
   }
   return {mode:'search',goal:copy(brain.goal),telegraph:false,strike:false,heard:false};
 }
