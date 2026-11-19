@@ -88,7 +88,7 @@ export class NightDirector{
     this.doorForceTime=0;
     this.doorListenTime=0;
     this.doorListenTriggered=false;
-    this.dread=createDreadState();
+    this.dread=createDreadState((this.dread?.seed??0)+1);
     this.game.dreadLightFactor=1;
     this.audio.setSilence(false);
     this.entryWarningIssued=false;
@@ -375,11 +375,22 @@ export class NightDirector{
       const player=this.game.view.camera.position;
       const near=this.state.enemyEntered&&Math.hypot(
         player.x-this.enemyPosition.x,player.z-this.enemyPosition.z)<2.3;
+      const cameraForward=new THREE.Vector3();
+      this.game.view.camera.getWorldDirection(cameraForward);
+      const facing={x:cameraForward.x,z:cameraForward.z};
+      const visibleEnemy=this.state.enemyEntered&&near&&
+        sightClear(player,this.enemyPosition,
+          [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)]);
       const cue=tickDread(this.dread,dt,this.state.elapsed,{
-        power:this.state.breakerOn,enemyNear:near});
+        power:this.state.breakerOn,enemyNear:near,
+        combat:['windup','recover','staggered'].includes(this.brain.mode)||
+          this.doorForceTime>0||this.doorListenTime>0,
+        player,facing,enemy:this.state.enemyEntered?this.enemyPosition:null,
+        enemyVisible:visibleEnemy});
       if(cue){
-        this.state.message=cue.text;
-        this.audio.environmentCue?.(cue.kind);
+        if(cue.text)this.state.message=cue.text;
+        const pan=cue.position?panFromCamera(player,facing,cue.position):0;
+        this.audio.environmentCue?.(cue.kind,pan);
       }
       this.game.dreadLightFactor=this.dread.dim;
       this.audio.setSilence(this.dread.silence>0&&!near);
