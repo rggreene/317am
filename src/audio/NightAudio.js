@@ -117,12 +117,12 @@ export class NightAudio{
     if(this.hum)this.hum.gain.setTargetAtTime(
       this.enabled&&this.powerOn?(active?.0001:.006):.0001,t,.18);
   }
-  environmentCue(kind){
-    if(kind==='settle')this.noiseBurst(310,.29,.012,-.48);
+  environmentCue(kind,pan=0){
+    if(kind==='settle')this.noiseBurst(310,.29,.012,pan);
     else if(kind==='tap'){
-      this.tone(240,.055,.012,155,.62);
-      this.noiseBurst(600,.08,.008,.62);
-    }else if(kind==='flicker')this.tone(72,.13,.008,57);
+      this.tone(240,.055,.012,155,pan);
+      this.noiseBurst(600,.08,.008,pan);
+    }else if(kind==='flicker')this.tone(72,.13,.008,57,pan);
     // Silence is intentionally silent.
   }
   doorListen(){
