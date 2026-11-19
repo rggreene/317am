@@ -3,6 +3,7 @@ import {createIntruder} from '../actors/createIntruder.js';
 import {makeMaterials} from './materialLibrary.js';
 import {box,rounded,cylinder,sphere,plane} from './EnvironmentKit.js';
 import {HERO_LAYOUT} from './heroLayout.js';
+import {buildHeroSofa,buildHeroCoffeeTable,buildHeroBed,buildHeroDresser} from './HeroFurniture.js';
 
 /**
  * Milestone 6: polished procedural environment testbed.
@@ -15,6 +16,14 @@ export function buildRoom(){
   const m=makeMaterials();
   const {wallHeight}=HERO_LAYOUT.room;
   const curtains=[];
+  const artSlots=new Map();
+  function registerHero(id,group){
+    if(artSlots.has(id))throw Error('Duplicate hero art slot: '+id);
+    group.userData.assetId=id;
+    artSlots.set(id,group);
+    root.add(group);
+    return group;
+  }
 
   const b=(size,material,p,opts)=>box(root,size,material,p,opts);
   const r=(size,material,p,rad=.06,opts)=>rounded(root,size,material,p,rad,opts);
@@ -78,47 +87,25 @@ export function buildRoom(){
   for(let i=0;i<6;i++)b([.018,.105,.033],m.black,[2.997+i*.053,2.36,.305],{cast:false});
   b([.025,.16,.11],m.trim,[-3.14,1.15,.38],{cast:false});
 
-  // Bedroom kept in place for continuity with the old navigation and lamp.
-  r([1.76,.31,2.12],m.wood,[-1.91,.20,-1.36],.04);
-  r([1.86,.78,.16],m.darkWood,[-1.91,.52,-2.38],.03);
-  r([1.64,.24,2.00],m.paleLinen,[-1.91,.46,-1.33],.06);
-  r([1.66,.115,1.33],m.upholstery,[-1.91,.64,-.94],.055);
-  for(const x of [-2.33,-1.53])r([.65,.13,.39],m.paleLinen,[x,.67,-2.02],.05);
-  r([.48,.68,.44],m.wood,[-2.92,.35,-1.28],.03);
+  // Hero bedroom art: physically separate frame, rumpled quilt and drawer fronts.
+  // Existing phone and bedside lamp retain their exact gameplay coordinates.
+  registerHero('room_bed_dressed',buildHeroBed(m));
+  rounded(root,[.48,.68,.44],m.wood,[-2.92,.35,-1.28],.03);
   lamp(root,m,-2.92,-1.28,.72);
-  r([.66,1.16,.34],m.wood,[-2.78,.59,1.46],.025);
-  r([.22,.038,.14],m.black,[-2.71,1.19,1.46],.01);
+  registerHero('room_dresser_phone',buildHeroDresser(m));
+  rounded(root,[.22,.038,.14],m.black,[-2.71,1.19,1.46],.01);
 
-  // Sofa. Structured wooden underframe + raised feet, rounded upholstery,
-  // seat/back cushions, cushions that separate visually from the frame.
-  for(const dx of [-.83,.83])for(const dz of [-.34,.34]){
-    b([.08,.15,.09],m.darkWood,[1.50+dx,.105,1.26+dz]);
-  }
-  r([2.02,.25,.94],m.upholsteryShade,[1.5,.32,1.26],.08);
-  r([2.01,.72,.21],m.upholsteryShade,[1.5,.63,1.665],.09);
-  for(const dx of [-.83,.83]){
-    r([.245,.44,.94],m.upholsteryShade,[1.5+dx,.46,1.26],.10);
-  }
-  for(const x of [1.015,1.985]){
-    r([.89,.13,.75],m.upholstery,[x,.50,1.25],.095);
-    const back=r([.90,.56,.18],m.upholstery,[x,.68,1.565],.06);
-    back.rotation.x=-.10;
-  }
-  const pillow=r([.34,.37,.14],m.throw,[2.21,.80,1.42],.07);
-  pillow.rotation.z=-.24;
-  const blanket=r([.56,.037,.60],m.paleLinen,[.96,.585,1.08],.016);
-  blanket.rotation.z=-.06;
+  // Hero art: decompressed cushions, fabric piping, textile throw.
+  registerHero('room_sofa_2seat',buildHeroSofa(m));
 
   // Rug with layered edge binding, kept slightly above floor to prevent z-fight.
   r([2.02,.025,1.37],m.rug,[1.49,.038,.27],.14,{cast:false,name:'Woven lounge rug'});
   b([1.83,.029,1.17],m.upholsteryShade,[1.49,.04,.27],{cast:false});
   b([1.66,.032,1.03],m.rug,[1.49,.045,.27],{cast:false});
 
-  // Coffee table: thin slab top with bevels, leg structure and lower shelf.
-  r([1.16,.095,.66],m.wood,[1.49,.47,.17],.024,{name:'Coffee table top'});
-  for(const dx of [-.48,.48])for(const dz of [-.24,.24])
-    b([.064,.36,.065],m.darkWood,[1.49+dx,.25,.17+dz]);
-  b([1.02,.045,.50],m.darkWood,[1.49,.22,.17]);
+  // Hero joinery: beveled hardwood, apron, angled legs, lower shelf.
+  registerHero('room_coffee_table',buildHeroCoffeeTable(m));
+
   // Objects show the previous evening was ordinary.
   c(.094,.079,.105,m.warmGlass,[1.23,.57,.04]);
   c(.035,.035,.015,m.brass,[1.32,.59,.04]);
@@ -187,7 +174,7 @@ export function buildRoom(){
 
   // Spotlights are not authored in buildRoom; Game.js owns the runtime lights.
   return {
-    root,intruder,heroLayout:HERO_LAYOUT,
+    root,intruder,heroLayout:HERO_LAYOUT,artSlots,
     updateAmbience(elapsed){
       // Small movement only; do not swing entire curtains through the walls.
       for(const item of curtains){
