@@ -46,7 +46,7 @@ try{
   await page.waitForTimeout(160);
   await page.screenshot({path:'artifacts/artreview-livingroom-clean.png'});
   await page.keyboard.press('r');
-  await page.waitForTimeout(1250);
+  await page.waitForTimeout(1850);
   await page.screenshot({path:'artifacts/artreview-intruder-clean.png'});
   await page.keyboard.press('h');
   await page.screenshot({path:'artifacts/intruder-closeup.png'});
@@ -84,7 +84,7 @@ try{
   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.intruderVariant==='legacy',
     null,{timeout:24000});
   await page.keyboard.press('r');
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(1850);
   await page.screenshot({path:'artifacts/artreview-intruder-legacy.png'});
   assert.deepEqual(errors,[],'uncaught errors in the browser');
   console.log('Chrome/WebGL smoke test passed: both GLBs, timer, view modes and quality profile');

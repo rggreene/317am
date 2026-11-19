@@ -303,8 +303,12 @@ export class Game {
       this.night.update(realDelta);
     }
     if(!this.combat.active && this.cameraAnimation){
-      camera.position.lerp(this.cameraAnimation.pos,Math.min(1,delta*6));
-      controls.target.lerp(this.cameraAnimation.target,Math.min(1,delta*6));
+      // Orbit inspection uses wall-clock delta, not the capped 50ms physics
+      // step. Otherwise slower software WebGL devices take many seconds to
+      // settle and the actor ends up cropped in preview screenshots.
+      const cameraBlend=1-Math.exp(-6*realDelta);
+      camera.position.lerp(this.cameraAnimation.pos,cameraBlend);
+      controls.target.lerp(this.cameraAnimation.target,cameraBlend);
       if(camera.position.distanceTo(this.cameraAnimation.pos)<0.02 && controls.target.distanceTo(this.cameraAnimation.target)<0.02){
         camera.position.copy(this.cameraAnimation.pos);
         controls.target.copy(this.cameraAnimation.target);
