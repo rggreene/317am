@@ -1,5 +1,6 @@
 // Deterministic perception and telegraphed melee for a single intruder.
 import {movementAwareness} from './AnalogLocomotion.js';
+import {sightClear,audibleRange} from '../audio/Occlusion.js';
 // This module knows nothing about Three.js, DOM, audio or animation.
 export const WINDUP_SECONDS=.82;
 export const RECOVERY_SECONDS=1.25;
@@ -19,7 +20,8 @@ export function interruptThreat(brain){
   return brain;
 }
 export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
-  movementSpeed=null,stance=1,flashlight=false,housePower=true}){
+  movementSpeed=null,stance=1,flashlight=false,housePower=true,
+  blockers=undefined}){
   const step=clamp(dt,0,.1);
   const range=distance(enemy,player);
   // The scroll-selected pace changes footstep audibility. Lower stances
@@ -29,7 +31,10 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
     (running?5.0:moving?3.05:0);
   const sight=(flashlight?4.25:housePower?3.2:2.1)*
     (flashlight?1:(.78+.22*Math.min(1,Math.max(0,stance))));
-  const detected=range<1.75 || (moving&&range<hearing) || range<sight;
+  const heard=moving&&range<audibleRange(hearing,enemy,player,blockers);
+  const visible=range<sight&&sightClear(enemy,player,blockers);
+  // Close proximity is still perceptible, even when furniture obscures sight.
+  const detected=range<.8||heard||visible;
   if(detected){
     brain.lastKnown=copy(player);
     brain.memory=4.3;
@@ -41,32 +46,32 @@ export function tickThreat(brain,{dt,enemy,player,moving=false,running=false,
   if(brain.mode==='staggered'){
     brain.recovery=Math.max(0,brain.recovery-step);
     if(brain.recovery===0)brain.mode='search';
-    return {mode:'staggered',goal:null,telegraph:false,strike:false,heard:detected};
+    return {mode:'staggered',goal:null,telegraph:false,strike:false,heard};
   }
   if(brain.mode==='recover'){
     brain.recovery=Math.max(0,brain.recovery-step);
     if(brain.recovery===0)brain.mode='search';
-    return {mode:'recover',goal:null,telegraph:false,strike:false,heard:detected};
+    return {mode:'recover',goal:null,telegraph:false,strike:false,heard};
   }
   if(brain.mode==='windup'){
     brain.windup=Math.max(0,brain.windup-step);
     if(brain.windup>0){
-      return {mode:'windup',goal:null,telegraph:false,strike:false,heard:detected};
+      return {mode:'windup',goal:null,telegraph:false,strike:false,heard};
     }
     brain.mode='recover';
     brain.recovery=RECOVERY_SECONDS;
     return {mode:'attack',goal:null,telegraph:false,
-      strike:range<=STRIKE_RANGE,heard:detected};
+      strike:range<=STRIKE_RANGE,heard};
   }
   if(range<=STRIKE_RANGE&&brain.memory>0){
     brain.mode='windup';
     brain.windup=WINDUP_SECONDS;
-    return {mode:'windup',goal:null,telegraph:true,strike:false,heard:true};
+    return {mode:'windup',goal:null,telegraph:true,strike:false,heard};
   }
   if(brain.memory>0&&brain.lastKnown){
     brain.mode='pursue';
     brain.goal=copy(brain.lastKnown);
-    return {mode:'pursue',goal:copy(brain.goal),telegraph:false,strike:false,heard:detected};
+    return {mode:'pursue',goal:copy(brain.goal),telegraph:false,strike:false,heard};
   }
   // On losing a target, investigate the last observed position before
   // returning to the patrol. Never follow the player's unseen position.
