@@ -4,6 +4,17 @@
 
 A browser-based survival horror game experiment, now built with **Three.js + Vite**, imported GLB assets, skeletal animation, and a compact playable night. The original self-contained Nightfall v0.4 remains safely available on `main`. **Do not merge or publish this branch until reviewed.**
 
+## Art revision production package
+
+The next workstream is **a coordinated furniture + character art replacement**. Its design and engineering gates are documented in:
+
+- [Art Revision Plan](docs/ART_REVISION_PLAN.md) — style guide, current scene placement, per-asset budgets, Blender/GLB contract and milestone gates.
+- [Art Acceptance Checklist](docs/ART_ACCEPTANCE_CHECKLIST.md) — review criteria for sofa, bed, entry, intruder and first-person hands.
+- [Asset Manifest](assets/asset-manifest.json) — the planned replacement GLBs, source locations and status for each asset.
+- [Blender/Three.js Pipeline](docs/ASSET_PIPELINE.md) — export conventions and safe fallback policy.
+
+**Planning status:** no replacement GLBs or Blender sources have been created merely by adding these documents. The existing procedural meshes remain active, and the playable build is unchanged. Run `npm run test:art-manifest` to validate the planning registry.
+
 ## Play locally
 
 Requires Node.js 22 or a compatible recent LTS and a browser with WebGL 2.
