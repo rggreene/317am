@@ -18,20 +18,24 @@ export function buildInteractionProps(scene){
   const phone=rounded(root,[.20,.016,.12],m.black,[-2.71,1.19,1.46],.01);
   phone.name='Emergency Phone';
   box(root,[.09,.004,.07],phoneGlow,[-2.71,1.202,1.46],{cast:false});
+  // These props mount on the removable cutaway wall in orbit mode.
+  const wallFixtures=new THREE.Group();
+  wallFixtures.name='Right wall fixtures';
+  root.add(wallFixtures);
   // Door is attached to the existing right-side wall, not a new collision blocker.
-  rounded(root,[.07,2.10,.88],m.wood,[3.11,1.08,1.98],.025,{name:'Front Door'});
-  box(root,[.091,.07,.77],m.trim,[3.055,2.11,1.98],{cast:false});
-  for(const z of [1.53,2.43])box(root,[.092,2.13,.065],m.trim,[3.056,1.08,z],{cast:false});
-  sphere(root,.04,m.brass,[3.04,1.04,1.69]);
-  const board=box(root,[.10,.17,1.09],m.darkWood,[2.991,1.23,1.98],{name:'Barricade plank'});
+  rounded(wallFixtures,[.07,2.10,.88],m.wood,[3.11,1.08,1.98],.025,{name:'Front Door'});
+  box(wallFixtures,[.091,.07,.77],m.trim,[3.055,2.11,1.98],{cast:false});
+  for(const z of [1.53,2.43])box(wallFixtures,[.092,2.13,.065],m.trim,[3.056,1.08,z],{cast:false});
+  sphere(wallFixtures,.04,m.brass,[3.04,1.04,1.69]);
+  const board=box(wallFixtures,[.10,.17,1.09],m.darkWood,[2.991,1.23,1.98],{name:'Barricade plank'});
   board.visible=false;
-  const board2=box(root,[.10,.17,1.09],m.darkWood,[2.991,.76,1.98],{name:'Lower barricade plank'});
+  const board2=box(wallFixtures,[.10,.17,1.09],m.darkWood,[2.991,.76,1.98],{name:'Lower barricade plank'});
   board2.visible=false;
   // Surface-mounted breaker and red/green indicator.
-  rounded(root,[.08,.46,.30],m.chrome,[3.095,1.39,.38],.016,{name:'Electrical breaker'});
-  const lever=box(root,[.083,.16,.046],m.black,[3.03,1.38,.38],{name:'Breaker switch'});
+  rounded(wallFixtures,[.08,.46,.30],m.chrome,[3.095,1.39,.38],.016,{name:'Electrical breaker'});
+  const lever=box(wallFixtures,[.083,.16,.046],m.black,[3.03,1.38,.38],{name:'Breaker switch'});
   const indicatorMat=new THREE.MeshBasicMaterial({color:'#92e3a5'});
-  sphere(root,.017,indicatorMat,[3.03,1.56,.38]);
+  sphere(wallFixtures,.017,indicatorMat,[3.03,1.56,.38]);
   // First-aid box rests on hall console.
   rounded(root,[.25,.12,.16],m.paleLinen,[-.53,1.00,-1.26],.023,{name:'First Aid Kit'});
   box(root,[.145,.009,.025],m.ink,[-.53,1.069,-1.26],{cast:false});
@@ -41,10 +45,10 @@ export function buildInteractionProps(scene){
   // Entry light hint: only visible while the actor is outside.
   const entryGlow=new THREE.PointLight('#cf784c',0,2,2);
   entryGlow.position.set(2.90,1.65,1.95);
-  root.add(entryGlow);
+  wallFixtures.add(entryGlow);
   scene.add(root);
   return {
-    root,items:INTERACTIONS,
+    root,wallFixtures,items:INTERACTIONS,
     update(state){
       phoneGlow.color.set(state.helpCalled?'#86d3aa':'#ffb366');
       board.visible=state.doorSecured;board2.visible=state.doorSecured;

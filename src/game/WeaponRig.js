@@ -59,7 +59,9 @@ export class WeaponRig{
     this.group=new THREE.Group();
     this.group.name='First-person pan and fitted gloved hands';
     this.group.visible=false;
-    this.rest=new THREE.Vector3(.09,-.34,-.69);
+    // Keep the pan out of the aiming center until the attack begins.
+    this.rest=new THREE.Vector3(.30,-.49,-.72);
+    this.group.scale.setScalar(.82);
     this.group.position.copy(this.rest);
     camera.add(this.group);
 
@@ -77,7 +79,7 @@ export class WeaponRig{
     this.time=0;this.walkPhase=0;
     this.motion=new THREE.Vector2();
 
-    const bounce=new THREE.PointLight('#bfd2de',1.35,1.6,2);
+    const bounce=new THREE.PointLight('#bfd2de',.70,1.6,2);
     bounce.position.set(.08,-.19,-.37);
     camera.add(bounce);
 

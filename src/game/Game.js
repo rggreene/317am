@@ -35,9 +35,9 @@ export class Game {
     this.intruderSavedCamera=null;
     this.cameraAnimation=null;
     void this.setupPan();
-    this.ambient=new THREE.HemisphereLight('#8eaecf','#1d1818',0.65);
+    this.ambient=new THREE.HemisphereLight('#8eaecf','#1d1818',0.48);
     scene.add(this.ambient);
-    this.moon=new THREE.DirectionalLight('#94bbec',1.35);
+    this.moon=new THREE.DirectionalLight('#94bbec',1.04);
     this.moon.position.set(-3.7,5.2,-1.1);
     this.moon.castShadow=true;
     this.moon.shadow.mapSize.set(1024,1024);
@@ -47,17 +47,17 @@ export class Game {
     this.moon.shadow.camera.bottom=-7;
     this.moon.shadow.bias=-0.0008;
     scene.add(this.moon);
-    this.lamp=new THREE.PointLight('#ffc581',17,5,2);
+    this.lamp=new THREE.PointLight('#ffc581',14,5,2);
     this.lamp.position.set(-2.93,1.27,-1.27);
     scene.add(this.lamp);
     // Hero-area practicals; restrained falloff keeps the far side of the room tense.
-    this.livingLamp=new THREE.PointLight('#ffc995',9.2,4.2,2);
+    this.livingLamp=new THREE.PointLight('#ffc995',8.0,4.2,2);
     this.livingLamp.position.set(2.80,1.54,2.08);
     this.livingLamp.castShadow=true;
     this.livingLamp.shadow.mapSize.set(512,512);
     this.livingLamp.shadow.bias=-.001;
     scene.add(this.livingLamp);
-    this.windowBounce=new THREE.PointLight('#8aaccb',3.7,3.0,2);
+    this.windowBounce=new THREE.PointLight('#8aaccb',3.0,3.0,2);
     this.windowBounce.position.set(1.24,2.2,-2.28);
     scene.add(this.windowBounce);
     this.tv=new THREE.PointLight('#78badc',6,3.8,2);
@@ -88,6 +88,7 @@ export class Game {
         const label=document.querySelector('#inspect-mode');
         if(label)label.textContent='APARTMENT OVERVIEW · E PAN · R INTRUDER';
         if(this.cutawayWall)this.cutawayWall.visible=true;
+        if(this.night)this.night.props.wallFixtures.visible=true;
         this.night?.enter();
       },
       getTarget:()=>this.riggedIntruder?.getTarget() ?? new THREE.Vector3(.28,1.43,-.38),
@@ -99,9 +100,11 @@ export class Game {
       }
     });
     this.night=new NightDirector(this);
+    this.night.props.wallFixtures.visible=false;
     root.addEventListener('night-pause',()=>{
       this.night.pause();
       if(this.cutawayWall)this.cutawayWall.visible=false;
+      this.night.props.wallFixtures.visible=false;
     });
     document.querySelector('#night-restart')?.addEventListener('click',()=>this.night.restart());
     this.handleKeyDown=(e)=>{
@@ -227,19 +230,19 @@ export class Game {
   }
   setBreakerPower(power){
     const strength=power?1:.025;
-    this.lamp.intensity=(this.moody?17:8)*strength;
-    this.livingLamp.intensity=(this.moody?9.2:4.8)*strength;
-    this.tv.intensity=(this.moody?4.4:1.7)*strength;
+    this.lamp.intensity=(this.moody?14:7)*strength;
+    this.livingLamp.intensity=(this.moody?8.0:4.8)*strength;
+    this.tv.intensity=(this.moody?3.4:1.7)*strength;
     this.panLight.intensity=(this.moody?8:3)*strength;
   }
   configureLighting(){
-    this.ambient.intensity=this.moody?0.65:1.65;
-    this.moon.intensity=this.moody?1.35:2.1;
-    this.lamp.intensity=this.moody?17:8;
-    this.tv.intensity=this.moody?4.4:1.7;
-    this.livingLamp.intensity=this.moody?9.2:4.8;
-    this.windowBounce.intensity=this.moody?3.7:2.1;
-    this.view.renderer.toneMappingExposure=this.moody?1.12:1.34;
+    this.ambient.intensity=this.moody?.48:1.40;
+    this.moon.intensity=this.moody?1.04:1.85;
+    this.lamp.intensity=this.moody?14:7;
+    this.tv.intensity=this.moody?3.4:1.7;
+    this.livingLamp.intensity=this.moody?8.0:4.8;
+    this.windowBounce.intensity=this.moody?3.0:2.1;
+    this.view.renderer.toneMappingExposure=this.moody?1.06:1.30;
     this.view.scene.fog.density=this.moody?0.024:0.012;
     this.setBreakerPower(this.night?.state.breakerOn??true);
   }
@@ -277,13 +280,15 @@ export class Game {
       }
     }
     if(!this.combat.active)controls.update();
+    this.panLight.visible=!this.combat.active;
     this.flashlight.position.copy(camera.position);
     camera.getWorldDirection(this.tmpDirection);
     this.flashlight.target.position.copy(camera.position).addScaledVector(this.tmpDirection,5);
     this.flashlight.target.updateMatrixWorld();
     renderer.render(scene,camera);
     if(this.fpsVisible){
-      this.frameTimes.push(delta);
+      this.frameTimes.push(Math.min(2,Math.max(.001,rawDelta)));
+
       if(this.frameTimes.length>50)this.frameTimes.shift();
       if(Math.floor(this.elapsed*4)!==Math.floor((this.elapsed-delta)*4)){
         const average=this.frameTimes.reduce((a,b)=>a+b,0)/Math.max(1,this.frameTimes.length);

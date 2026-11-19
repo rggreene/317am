@@ -107,3 +107,11 @@ Do **not** deploy this lab to the existing public Netlify site in place of the v
 - Three.js procedural fabric, laminate and paint now include subtle generated surface-height bump maps. These are not substitutes for artist-authored scanned PBR textures.
 - `npm run test:rendering` checks quality profiles without creating a WebGL context.
 - Cinematic is optional and can be noticeably more expensive, particularly on high-resolution screens.
+
+## Browser screenshot review refinements
+
+- Right wall and its attached door/breaker fixtures are hidden in orbit but restored for first-person navigation.
+- Viewmodel pan and sleeves are slightly smaller, positioned lower/right, and locally lit with less intensity to keep the reticle visible.
+- Practical lights and ambient exposure have been reduced modestly in the moody lighting preset.
+- Survival HUD was separated vertically from the header to prevent overlap; FPS meter now stays hidden unless requested.
+- FPS telemetry uses actual wall-frame duration, not capped physics delta.

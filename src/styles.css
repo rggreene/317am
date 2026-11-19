@@ -64,7 +64,7 @@ kbd{display:inline-flex;justify-content:center;min-width:19px;padding:3px 6px;ma
 }
 
 /* Vertical Slice Alpha — survival interface */
-#night-hud{position:absolute;top:122px;left:30px;width:330px;max-width:calc(100vw - 50px);padding:15px 16px;background:linear-gradient(130deg,#081118d9,#08111864);border:1px solid #b7c0c42b;border-left:3px solid #d1a36f;backdrop-filter:blur(8px);border-radius:3px}
+#night-hud{position:absolute;top:157px;left:30px;width:330px;max-width:calc(100vw - 50px);padding:15px 16px;background:linear-gradient(130deg,#081118d9,#08111864);border:1px solid #b7c0c42b;border-left:3px solid #d1a36f;backdrop-filter:blur(8px);border-radius:3px}
 .night-topline{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px;color:#f1c795;font:700 22px ui-monospace,SFMono-Regular,monospace;letter-spacing:.1em}
 #night-health{font-size:16px;color:#c9e7d3}
 #night-objective{font-size:11px;font-weight:750;letter-spacing:.10em;margin-bottom:11px}
@@ -78,8 +78,11 @@ kbd{display:inline-flex;justify-content:center;min-width:19px;padding:3px 6px;ma
 .night-end-inner p{font-size:12px;color:#bdc7c9;line-height:1.8}
 #night-restart{margin-top:19px;border:1px solid #c59a6b;padding:13px 21px;border-radius:3px;color:#f5debf;font-weight:800;letter-spacing:.08em;background:#3c3027;cursor:pointer}
 #night-restart:hover{background:#66503a}
-@media(max-width:750px){#night-hud{top:126px;left:16px;width:270px;padding:11px}#night-message{display:none}#night-objective{font-size:10px}#interaction-hint{font-size:9px}.night-topline{font-size:19px}}
+@media(max-width:750px){#night-hud{top:151px;left:16px;width:270px;padding:11px}#night-message{display:none}#night-objective{font-size:10px}#interaction-hint{font-size:9px}.night-topline{font-size:19px}}
 
 /* Separate status messages in the orbit inspection panel. */
 .note > span{display:block}
 #asset-status,#inspect-mode{display:block;margin-top:4px}
+
+/* Preserve true hidden state for the optional FPS meter. */
+#fps[hidden]{display:none!important}
