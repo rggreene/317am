@@ -1,6 +1,6 @@
 // Deterministic, non-combat environmental cues. No random jumpscares and
 // no artificial player sound events: the intruder cannot hear the house itself.
-export function createDreadState(){return {nextAt:8,index:0,flicker:0,dim:1};}
+export function createDreadState(){return {nextAt:8,index:0,flicker:0,dim:1,silence:0};}
 const cues=[
   {kind:'settle',text:'A FLOORBOARD CREAKS SOMEWHERE BEHIND YOU.'},
   {kind:'flicker',text:'THE LIGHTS FALTER. THEN HOLD.'},
@@ -10,6 +10,7 @@ const cues=[
 ];
 export function tickDread(state,dt,elapsed,{power=true,enemyNear=false}={}){
   state.flicker=Math.max(0,state.flicker-Math.max(0,dt));
+  state.silence=Math.max(0,state.silence-Math.max(0,dt));
   state.dim=state.flicker>0?.23:1;
   if(elapsed<state.nextAt)return null;
   const cue=cues[state.index%cues.length];
@@ -18,5 +19,6 @@ export function tickDread(state,dt,elapsed,{power=true,enemyNear=false}={}){
   // Don't override a nearby threat or flash powerless lights.
   if(enemyNear||(!power&&cue.kind==='flicker'))return null;
   if(cue.kind==='flicker')state.flicker=.22;
+  if(cue.kind==='silence')state.silence=3.5;
   return cue;
 }
