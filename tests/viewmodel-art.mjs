@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import {buildFirstPersonGrip} from '../src/game/ViewmodelArt.js';
+const world=new THREE.Group(),pivot=new THREE.Group();
+pivot.position.set(-.04,.12,-.07);pivot.rotation.set(1.18,0,-.56);
+world.add(pivot);
+buildFirstPersonGrip(world,pivot);
+const hands=[],fabric=[];
+pivot.traverse(node=>{if(node.isMesh)hands.push(node);});
+world.traverse(node=>{if(node.isMesh)fabric.push(node);});
+assert.ok(hands.length>=30,'expected both gloves, curled fingers and thumb details');
+assert.ok(fabric.length>hands.length,'sleeves must connect back to wrists');
+assert.equal(world.userData.firstPersonArt,'Layered cloth sleeves and glove anatomy pass');
+const outlines=new THREE.Box3().setFromObject(world);
+assert.ok(outlines.min.x>-2&&outlines.max.x<2,'art should fit first-person scene');
+assert.ok([...outlines.min,...outlines.max].every(Number.isFinite));
+console.log('Refined first-person glove/forearm art geometry passed');

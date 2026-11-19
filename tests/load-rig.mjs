@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {dressIntruderRig} from '../src/actors/IntruderArtPass.js';
 
 globalThis.self ??= globalThis;
 const b=readFileSync(new URL('../assets/models/intruder_rig.glb',import.meta.url));
@@ -19,6 +20,23 @@ for(const clip of gltf.animations){
   const action=mixer.clipAction(clip);
   action.play();mixer.update(.025);
   assert.equal(action.getClip().name,clip.name);
+  action.stop();
+}
+const art=dressIntruderRig(gltf.scene);
+assert.ok(art.boneCount>=12,'rig dressing did not find expected bones');
+assert.ok(art.attachmentCount>=25,'intruder art pass lacks attached details');
+assert.ok(art.changedMaterials>=4,'basic PBR materials not retuned');
+const dressed=[];
+gltf.scene.traverse(node=>{
+  if(node.isMesh&&/Jacket|Hood|Glove|Boot|coat|zipper/i.test(node.name))dressed.push(node);
+  if(node.isMesh && node.material?.name==='Reflective Eyes'){
+    assert.ok(node.material.emissiveIntensity===0,'eyes must not self-illuminate');
+  }
+});
+assert.ok(dressed.length>=10,'bone-following fabric art not present');
+for(const clip of gltf.animations){
+  const action=mixer.clipAction(clip);
+  action.reset().play();mixer.update(.025);
   action.stop();
 }
 console.log('Three.js successfully parsed skinned intruder and four animation actions');

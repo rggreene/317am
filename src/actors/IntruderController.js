@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import rigUrl from '../../assets/models/intruder_rig.glb?url';
 import {loadGLB} from '../assets/loadGLB.js';
 import {impactDirection,dampedSpring} from '../game/ImpactQuality.js';
+import {dressIntruderRig} from './IntruderArtPass.js';
 
 export const INTRUDER_CLIPS=Object.freeze(['idle','walk','attack','stagger']);
 
@@ -25,6 +26,8 @@ export async function createRiggedIntruder(){
     if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}
     if(node.isSkinnedMesh)node.frustumCulled=false;
   });
+  // Bone-following costume details; GLB clips and hit positions stay intact.
+  const art=dressIntruderRig(asset.scene);
   let active=null;
   let current='';
   let onChanged=()=>{};
@@ -71,6 +74,7 @@ export async function createRiggedIntruder(){
   setClip('idle');
   return {
     group,
+    art,
     setClip,
     update(delta){
       asset.mixer.update(delta);

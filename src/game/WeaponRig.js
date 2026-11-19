@@ -2,55 +2,7 @@ import * as THREE from 'three';
 import {loadFryingPan} from '../props/loadFryingPan.js';
 import {SWING_DURATION,IMPACT_PHASE,swingPose} from './CombatMath.js';
 import {dampedSpring} from './ImpactQuality.js';
-
-const sleeve=new THREE.MeshStandardMaterial({color:'#465165',roughness:.95});
-const cuff=new THREE.MeshStandardMaterial({color:'#222833',roughness:.88});
-const leather=new THREE.MeshStandardMaterial({color:'#20242a',roughness:.82});
-const piping=new THREE.MeshStandardMaterial({color:'#454c52',roughness:.7});
-
-function pill(parent,start,end,radius,material){
-  const a=new THREE.Vector3(...start),b=new THREE.Vector3(...end);
-  const d=b.clone().sub(a);
-  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(radius*.86,radius,d.length(),12),material);
-  mesh.position.copy(a).add(b).multiplyScalar(.5);
-  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());
-  mesh.receiveShadow=true;
-  parent.add(mesh);
-  return mesh;
-}
-function palm(parent,x){
-  // Palms and curled fingers are constructed in *pan local space*;
-  // they stay wrapped around the handle as the whole viewmodel swings.
-  const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),leather);
-  mesh.scale.set(.075,.054,.074);
-  mesh.position.set(x,.103,.018);
-  parent.add(mesh);
-  for(let i=0;i<4;i++){
-    const fx=x-.043+i*.027;
-    pill(parent,[fx,.132,.055],[fx+.003,.055,-.021],.015,leather);
-    const knuckle=new THREE.Mesh(new THREE.SphereGeometry(.018,10,8),leather);
-    knuckle.position.set(fx,.13,.055);
-    parent.add(knuckle);
-  }
-  pill(parent,[x+.071,.10,-.016],[x+.04,.057,-.038],.019,leather);
-}
-function buildTwoHandGrip(group,panPivot){
-  const hands=[{x:.356,origin:[.57,-.90,.40]},{x:.246,origin:[-.55,-.89,.39]}];
-  // The right hand makes the main grip, left hand braces close to the tang.
-  panPivot.updateMatrix();
-  for(const h of hands){
-    palm(panPivot,h.x);
-    const wrist=new THREE.Vector3(h.x,.095,.014).applyEuler(panPivot.rotation).add(panPivot.position);
-    const elbow=new THREE.Vector3().fromArray(h.origin);
-    const cuffEnd=wrist.clone().lerp(elbow,.22);
-    pill(group,h.origin,cuffEnd.toArray(),.105,sleeve);
-    pill(group,cuffEnd.toArray(),wrist.toArray(),.094,cuff);
-    const seam=new THREE.Mesh(new THREE.TorusGeometry(.086,.008,6,14),piping);
-    seam.position.copy(cuffEnd);
-    seam.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),wrist.clone().sub(elbow).normalize());
-    group.add(seam);
-  }
-}
+import {buildFirstPersonGrip} from './ViewmodelArt.js';
 
 export class WeaponRig{
   constructor(camera,onImpact=()=>{}){
@@ -69,7 +21,7 @@ export class WeaponRig{
     this.panPivot.position.set(-.04,.12,-.07);
     this.panPivot.rotation.set(1.18,0,-.56);
     this.group.add(this.panPivot);
-    buildTwoHandGrip(this.group,this.panPivot);
+    buildFirstPersonGrip(this.group,this.panPivot);
 
     this.assetLoaded=false;
     this.swingTime=SWING_DURATION;
