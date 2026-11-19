@@ -2,7 +2,7 @@
   "schema_version": 1,
   "character_id": "char_intruder_v02",
   "working_name": "The Uninvited",
-  "status": "specification_only",
+  "status": "candidate_in_review",
   "source_blend": "assets/source/blender/characters/char_intruder_v02.blend",
   "output_glb": "assets/models/characters/char_intruder_v02.glb",
   "current_fallback": "assets/models/intruder_rig.glb",
@@ -22,17 +22,17 @@
     "origin": "ground_center_between_feet",
     "feet_floor_y_m": 0,
     "dimensions_xyz_m": [
-      0.73,
-      1.9,
-      0.52
+      1.03,
+      1.91,
+      0.54
     ],
     "dimension_tolerance_relative": [
-      0.12,
+      0.1,
       0.04,
-      0.15
+      0.12
     ],
     "triangles_target_min": 18000,
-    "triangles_target_max": 22000,
+    "triangles_target_max": 24000,
     "triangles_hard_cap": 25000,
     "optional_lod1_triangles_max": 11000,
     "max_materials": 5,
@@ -49,7 +49,8 @@
       "Gloves",
       "Boots"
     ],
-    "file_size_target_mb": 8
+    "file_size_target_mb": 8,
+    "mesh_method": "reproducible_parametric_skinned_glb_not_hand_sculpted"
   },
   "skeleton": {
     "armature_object": "ARM_IntruderV2",

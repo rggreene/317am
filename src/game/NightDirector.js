@@ -6,6 +6,7 @@ import {findNavigationPath,navigateStep} from './NavGrid.js';
 import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
 import {panFromCamera} from '../audio/AudioSpatial.js';
+import {beginIntruderStrike,advanceIntruderStrike} from './AttackContact.js';
 
 const ENTRY={x:2.73,z:2.12};
 const WALK_SPEED=.67;
@@ -24,6 +25,7 @@ export class NightDirector{
     this.actorState='idle';
     this.brain=createThreatBrain();
     this.entryWarningIssued=false;
+    this.pendingContact=null;
     this.lastStepAt=-100;
     this.endedHandled=false;
     this.lastPhase='idle';
@@ -56,12 +58,14 @@ export class NightDirector{
     this.updatePresentation();
   }
   pause(){
+    this.pendingContact=null;
     this.active=false;
     this.audio.pause();
     this.showEnemy(true); // Keep actor visible for orbit-mode inspection.
     this.updatePresentation();
   }
   restart(){
+    this.pendingContact=null;
     this.state=createNight();
     this.brain=createThreatBrain();
     this.entryWarningIssued=false;
@@ -147,6 +151,7 @@ export class NightDirector{
   onPlayerHit(){
     if(!this.active||!this.state.enemyEntered||this.state.phase!=='playing')return;
     nightEvent(this.state,'stun');
+    this.pendingContact=null;
     interruptThreat(this.brain);
     this.actorState='stagger';
     this.target?.setIntent('stagger');
@@ -157,6 +162,31 @@ export class NightDirector{
     if(name===this.actorState)return;
     this.actorState=name;
     this.target?.setClip(name);
+  }
+  resolveContact(dt){
+    if(!this.pendingContact)return;
+    const player=this.game.view.camera.position;
+    const distance=Math.hypot(player.x-this.enemyPosition.x,
+      player.z-this.enemyPosition.z);
+    const result=advanceIntruderStrike(this.pendingContact,dt,{
+      distance,
+      stunned:this.state.enemyStun>0||this.brain.mode==='staggered',
+      playing:this.active&&this.state.phase==='playing'
+    });
+    this.pendingContact=result.pending;
+    if(result.event==='hit'){
+      const hit=nightEvent(this.state,'hit');
+      if(hit){
+        this.audio.hurt();
+        this.game.combat.root.classList.add('player-hurt');
+        this.game.combat.hurtTime=.31;
+        this.game.combat.setFeedback(this.state.message);
+        this.game.combat.cameraKick.velocity+=.15;
+      }
+    }else if(result.event==='miss'){
+      this.audio.miss();
+      this.state.message='IT SWUNG AT EMPTY AIR. KEEP MOVING.';
+    }
   }
   enemyTick(dt){
     if(!this.state.enemyEntered||this.state.phase!=='playing')return;
@@ -191,19 +221,9 @@ export class NightDirector{
     if(step.mode==='attack'){
       this.target?.setIntent('attack');
       this.setActorPose('attack');
-      if(step.strike){
-        const hit=nightEvent(this.state,'hit');
-        if(hit){
-          this.audio.hurt();
-          this.game.combat.root.classList.add('player-hurt');
-          this.game.combat.hurtTime=.31;
-          this.game.combat.setFeedback(this.state.message);
-          this.game.combat.cameraKick.velocity+=.15;
-        }
-      }else{
-        this.audio.miss();
-        this.state.message='IT SWUNG AT EMPTY AIR. KEEP MOVING.';
-      }
+      // The threat state machine initiates the animation here; the only
+      // damage evaluation is queued for the visible 180ms contact pose.
+      this.pendingContact=beginIntruderStrike();
       return;
     }
     if(step.mode==='recover'){
@@ -263,7 +283,9 @@ export class NightDirector{
       this.game.combat.setFeedback(this.state.message);
     }
     if(this.state.phase==='playing'){
-      this.enemyTick(Math.min(dt,.05));
+      const combatStep=Math.min(dt,.05);
+      this.resolveContact(combatStep);
+      this.enemyTick(combatStep);
       this.audio.heartbeat(this.state.elapsed,this.state.health);
       this.audio.ambience(this.state.elapsed);
     }

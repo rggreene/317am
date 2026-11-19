@@ -102,8 +102,16 @@ const before=night.state.health;
 night.enemyTick(.05);
 assert.equal(night.state.health,before,'instant-contact damage must not occur');
 assert.equal(night.brain.mode,'windup','intruder signals its incoming strike');
+night.brain.windup=.04;
+night.enemyTick(.05);
+assert.ok(night.pendingContact,'attack should queue damage for the visual contact pose');
+assert.equal(night.state.health,before,'attack animation start must NOT deal damage');
+night.resolveContact(.08);
+assert.equal(night.state.health,before,'contact should not be premature');
+
 night.onPlayerHit();
 for(let i=0;i<15;i++)night.enemyTick(.05);
 assert.equal(night.state.health,before,'stagger must cancel a queued strike');
 assert.equal(night.brain.mode,'staggered');
+assert.equal(night.pendingContact,null,'pan strike must clear queued attack contact');
 console.log('NightDirector browserless interaction and win/restart integration checks passed');

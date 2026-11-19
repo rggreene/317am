@@ -172,12 +172,14 @@ export class Game {
       this.apartment.add(controller.group);
       this.apartment.remove(this.intruder.group);
       this.riggedIntruder=controller;
+      this.rootElement.dataset.intruderVariant=controller.variant;
       controller.onChanged=clip=>{
         const label=document.querySelector('#clip-status');
         if(label)label.textContent='INTRUDER: '+clip.toUpperCase();
       };
       const status=document.querySelector('#intruder-status');
-      if(status)status.textContent='12-bone animated GLB loaded';
+      if(status)status.textContent=controller.variant==='v2'?
+        'Uninvited v2: 37-joint skinned GLB loaded':'12-bone animated GLB loaded';
       this.night?.onRigReady();
     }catch(error){
       console.error('Intruder GLB failed. Keeping fallback:',error);

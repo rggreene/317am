@@ -26,6 +26,10 @@ try{
     document.querySelector('#asset-status')?.textContent.includes('loaded'),
     null,{timeout:24000});
   assert.equal(await banner.isVisible(),false,'WebGL startup failed');
+  const variant=await page.locator('#app').getAttribute('data-intruder-variant');
+  if(process.env.EXPECT_INTRUDER_V2==='1'){
+    assert.equal(variant,'v2','candidate GLB must be loaded, not silently replaced by fallback');
+  }
   await page.waitForFunction(()=>
     document.querySelector('#app')?.dataset.heroArtStatus==='ready',
     null,{timeout:13000});

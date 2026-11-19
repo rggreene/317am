@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 import rigUrl from '../../assets/models/intruder_rig.glb?url';
+
+// The v2 candidate is a genuinely skinned GLB. Use the current 12-bone
+// intruder whenever a candidate is absent, invalid or fails to load.
+// Import is optional so branches that do not ship v2 remain buildable.
+const candidateGlbs=import.meta.glob('../../assets/models/characters/char_intruder_v02.glb',{
+  query:'?url',import:'default',eager:true
+});
 import {loadGLB} from '../assets/loadGLB.js';
 import {impactDirection,dampedSpring} from '../game/ImpactQuality.js';
 import {dressIntruderRig} from './IntruderArtPass.js';
@@ -8,8 +15,59 @@ import {intruderPose} from './IntruderPose.js';
 
 export const INTRUDER_CLIPS=Object.freeze(['idle','walk','attack','stagger']);
 
+const REQUIRED_V2_BONES=[
+  'Root','Pelvis','Spine_Lower','Spine','Spine_Upper','Neck','Head',
+  'Clavicle_L','Shoulder_L','Elbow_L','Wrist_L','Hand_L',
+  'Clavicle_R','Shoulder_R','Elbow_R','Wrist_R','Hand_R',
+  'Thigh_L','Knee_L','Ankle_L','Foot_L','Toe_L',
+  'Thigh_R','Knee_R','Ankle_R','Foot_R','Toe_R',
+  'Thumb_01_L','Thumb_02_L','Index_01_L','Index_02_L','FingerCurl_L',
+  'Thumb_01_R','Thumb_02_R','Index_01_R','Index_02_R','FingerCurl_R'
+];
+const REQUIRED_V2_CLIPS=[
+  'idle','walk','attack','stagger','idle_listen','search',
+  'notice','windup','recover','pursue','turn_left','turn_right'
+];
+
+function validateCandidate(asset){
+  if(!asset.mixer)throw Error('Uninvited v2 has no AnimationMixer');
+  const found=new Set(),clips=new Set(asset.animations.map(x=>x.name));
+  let skinned=0,materialCount=0;
+  asset.scene.traverse(node=>{
+    if(node.isBone)found.add(node.name);
+    if(node.isSkinnedMesh){skinned++;materialCount+=
+      Array.isArray(node.material)?node.material.length:1;}
+  });
+  if(!skinned)throw Error('Uninvited v2 must contain a skinned mesh');
+  for(const name of REQUIRED_V2_BONES){
+    if(!found.has(name))throw Error('Uninvited v2 missing bone '+name);
+  }
+  for(const clip of REQUIRED_V2_CLIPS){
+    if(!clips.has(clip))throw Error('Uninvited v2 missing clip '+clip);
+  }
+  if(materialCount>5)throw Error('Uninvited v2 exceeds material budget');
+  const size=new THREE.Box3().setFromObject(asset.scene).getSize(new THREE.Vector3());
+  if(Math.abs(size.x-1.03)>.20||Math.abs(size.y-1.91)>.17||
+    Math.abs(size.z-.54)>.18)
+    throw Error('Uninvited v2 unexpected dimensions: '+size.toArray());
+}
+
+async function loadBestIntruder(){
+  const url=Object.values(candidateGlbs)[0];
+  if(url){
+    try{
+      const candidate=await loadGLB(url);
+      validateCandidate(candidate);
+      return {asset:candidate,variant:'v2'};
+    }catch(error){
+      console.warn('Uninvited v2 rejected; retaining legacy character:',error);
+    }
+  }
+  return {asset:await loadGLB(rigUrl),variant:'legacy'};
+}
+
 export async function createRiggedIntruder(){
-  const asset=await loadGLB(rigUrl);
+  const {asset,variant}=await loadBestIntruder();
   if(!asset.mixer)throw Error('No animations found in the intruder rig');
   for(const name of INTRUDER_CLIPS){
     if(!THREE.AnimationClip.findByName(asset.animations,name))throw Error('Missing rig animation: '+name);
@@ -31,8 +89,8 @@ export async function createRiggedIntruder(){
   // Bone-following costume details; GLB clips and hit positions stay intact.
   // Replace the mannequin-like skinned shell with detailed bone-following
   // meshes; the old skinned mesh stays in memory as a reversible fallback.
-  const sculpt=sculptIntruderSilhouette(asset.scene);
-  const art=dressIntruderRig(asset.scene);
+  const sculpt=variant==='legacy'?sculptIntruderSilhouette(asset.scene):null;
+  const art=variant==='legacy'?dressIntruderRig(asset.scene):null;
   // Intent layer is additive to the original four GLB animation clips.
   // Undo the previous offset before mixer.update to avoid frame-to-frame drift.
   const poseBones=new Map();
@@ -51,6 +109,7 @@ export async function createRiggedIntruder(){
     applied.clear();
   }
   function addPose(dt){
+    if(variant==='v2')return;
     poseClock+=dt;
     const pose=intruderPose(intent,intentProgress,poseClock);
     for(const [name,angles] of Object.entries(pose)){
@@ -86,7 +145,12 @@ export async function createRiggedIntruder(){
     setClip('stagger',true);
   }
   function setClip(name,forceRestart=false){
-    if(!INTRUDER_CLIPS.includes(name))return false;
+    const available=variant==='v2'?REQUIRED_V2_CLIPS:INTRUDER_CLIPS;
+    if(!available.includes(name))return false;
+    // NightDirector's four-clip compatibility calls must never overwrite the
+    // full character's authored windup/search/recovery animation.
+    if(variant==='v2'&&!forceRestart&&['walk','idle'].includes(name)&&
+      !['idle','walk'].includes(intent))return true;
     if(name===current&&active?.isRunning()&&!forceRestart)return true;
     const clip=THREE.AnimationClip.findByName(asset.animations,name);
     const action=asset.mixer.clipAction(clip);
@@ -108,17 +172,23 @@ export async function createRiggedIntruder(){
   setClip('idle');
   return {
     group,
+    variant,
     art,
     sculpt,
     setClip,
     setIntent(name,progress=0){
+      const changed=intent!==name;
       intent=name;
       intentProgress=THREE.MathUtils.clamp(progress,0,1);
+      if(variant==='v2'&&changed){
+        const selected=REQUIRED_V2_CLIPS.includes(name)?name:'idle';
+        setClip(selected);
+      }
     },
     update(delta){
-      resetPose();
+      if(variant==='legacy')resetPose();
       asset.mixer.update(delta);
-      addPose(delta);
+      if(variant==='legacy')addPose(delta);
       for(const state of Object.values(reaction)){
         const next=dampedSpring(state.value,state.velocity,delta,16);
         state.value=next.value;

@@ -39,7 +39,7 @@ jobs:
             if curl --silent --fail http://127.0.0.1:5173/ > /dev/null; then break; fi
             sleep 0.3
           done
-          npm run test:browser
+          EXPECT_INTRUDER_V2=1 npm run test:browser
       - name: Preserve visual smoke screenshots
         if: always()
         uses: actions/upload-artifact@v4

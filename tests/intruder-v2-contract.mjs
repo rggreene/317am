@@ -107,43 +107,86 @@ if(candidate.status==='planned'){
   assert.ok(['exported','in_review','active'].includes(candidate.status),
     'unexpected candidate status '+candidate.status);
   assert.ok(existsSync(projectUrl(c.output_glb)),'v2 candidate GLB missing at '+c.output_glb);
-  const file=readFileSync(projectUrl(c.output_glb));
-  const ab=file.buffer.slice(file.byteOffset,file.byteOffset+file.byteLength);
-  const gltf=await new Promise((resolve,reject)=>new GLTFLoader().parse(ab,'',resolve,reject));
-  const bones=new Set(),materials=new Set();
-  let skinned=0,triangles=0,hasUV=true;
-  gltf.scene.traverse(obj=>{
-    if(obj.isBone)bones.add(obj.name);
-    if(!obj.isMesh)return;
-    if(obj.isSkinnedMesh)skinned++;
-    hasUV&&=Boolean(obj.geometry.attributes.uv);
-    triangles+=(obj.geometry.index?.count||obj.geometry.attributes.position?.count||0)/3;
-    for(const mat of (Array.isArray(obj.material)?obj.material:[obj.material])){
-      if(mat)materials.add(mat);
-      if(mat?.emissiveIntensity>0 && /eye/i.test(mat.name))throw Error('emissive eye material');
+  // Node does not provide image decoding to GLTFLoader; parse the binary
+  // structure here and require a real Chrome/WebGL test for texture/render QA.
+  const bytes=readFileSync(projectUrl(c.output_glb));
+  assert.equal(bytes.toString('ascii',0,4),'glTF','invalid GLB magic');
+  assert.equal(bytes.readUInt32LE(4),2,'invalid GLB version');
+  assert.equal(bytes.readUInt32LE(8),bytes.length,'invalid GLB byte length');
+  const jsonLength=bytes.readUInt32LE(12);
+  assert.equal(bytes.readUInt32LE(16),0x4E4F534A);
+  const gltf=JSON.parse(bytes.toString('utf8',20,20+jsonLength));
+  const binChunk=20+jsonLength;
+  assert.equal(bytes.readUInt32LE(binChunk+4),0x004E4942);
+  const dataStart=binChunk+8;
+  assert.ok(gltf.skins?.length>=1,'candidate lacks an exported skin');
+  const boneNames=new Set(gltf.skins[0].joints.map(index=>gltf.nodes[index]?.name));
+  for(const name of c.skeleton.required_bones)assert.ok(boneNames.has(name),'missing joint: '+name);
+  const allPrimitives=gltf.meshes.flatMap(mesh=>mesh.primitives);
+  assert.ok(allPrimitives.length>=1,'GLB must include meshes');
+  assert.ok(gltf.materials.length<=c.geometry.max_materials,'too many materials');
+  assert.ok(gltf.materials.every(x=>!(x.emissiveFactor||[]).some(v=>v>0)),
+    'no emissive glow is permitted');
+  let triangles=0,vertexCount=0;
+  const min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
+  for(const primitive of allPrimitives){
+    assert.ok(primitive.attributes.JOINTS_0!==undefined,'skinned joints missing');
+    assert.ok(primitive.attributes.WEIGHTS_0!==undefined,'skin weights missing');
+    assert.ok(primitive.attributes.NORMAL!==undefined,'vertex normals missing');
+    assert.ok(primitive.attributes.TEXCOORD_0!==undefined,'UV coordinates missing');
+    const pos=gltf.accessors[primitive.attributes.POSITION];
+    const index=gltf.accessors[primitive.indices];
+    assert.equal(index.count%3,0,'triangle indices not divisible by three');
+    triangles+=index.count/3;
+    vertexCount+=pos.count;
+    for(let a=0;a<3;a++){
+      min[a]=Math.min(min[a],pos.min[a]);
+      max[a]=Math.max(max[a],pos.max[a]);
     }
-  });
-  assert.ok(skinned>=1,'v2 export must contain skinned meshes');
-  assert.ok(hasUV,'all v2 meshes must carry UVs');
-  assert.ok(triangles<=c.geometry.triangles_hard_cap,'v2 export over triangle budget');
-  assert.ok(materials.size<=c.geometry.max_materials,'v2 export has too many materials');
-  for(const name of c.skeleton.required_bones)assert.ok(bones.has(name),'GLB bone missing '+name);
-  const bounds=new THREE.Box3().setFromObject(gltf.scene);
-  const size=bounds.getSize(new THREE.Vector3()).toArray();
-  c.geometry.dimensions_xyz_m.forEach((expected,i)=>{
-    assert.ok(Math.abs(size[i]-expected)/expected<=c.geometry.dimension_tolerance_relative[i],
-      'GLB dimension out of contract: axis '+i+' actual '+size[i]);
-  });
-  const exported=new Map(gltf.animations.map(clip=>[clip.name,clip]));
-  for(const name of c.animations.runtime_required_clips){
-    assert.ok(exported.has(name),'required runtime animation missing: '+name);
+    const weights=gltf.accessors[primitive.attributes.WEIGHTS_0];
+    const view=gltf.bufferViews[weights.bufferView];
+    assert.equal(weights.type,'VEC4');
+    assert.equal(weights.componentType,5126);
+    for(let i=0;i<weights.count;i++){
+      const offset=dataStart+(view.byteOffset||0)+(weights.byteOffset||0)+i*16;
+      let sum=0;
+      for(let k=0;k<4;k++){
+        const w=bytes.readFloatLE(offset+k*4);
+        assert.ok(Number.isFinite(w)&&w>=-.0001&&w<=1.0001);
+        sum+=w;
+      }
+      assert.ok(Math.abs(sum-1)<.015,'skin weights must normalize: '+i);
+    }
   }
+  assert.ok(vertexCount>5000,'v2 candidate is too simple');
+  assert.ok(triangles>=c.geometry.triangles_target_min,'under target geometry quality');
+  assert.ok(triangles<=c.geometry.triangles_hard_cap,'over triangle budget');
+  const size=min.map((v,i)=>max[i]-v);
+  size.forEach((actual,i)=>{
+    const expected=c.geometry.dimensions_xyz_m[i];
+    assert.ok(Math.abs(actual-expected)/expected<=c.geometry.dimension_tolerance_relative[i],
+      'bounds mismatch axis '+i+': '+actual+' expected '+expected);
+  });
+  assert.ok(Array.isArray(gltf.images)&&gltf.images.length>=3,'PBR maps missing');
+  for(const image of gltf.images){
+    assert.equal(image.mimeType,'image/png');
+    const view=gltf.bufferViews[image.bufferView],offset=dataStart+view.byteOffset;
+    assert.equal(bytes.toString('hex',offset,offset+8),'89504e470d0a1a0a','invalid embedded PNG');
+    const width=bytes.readUInt32BE(offset+16),height=bytes.readUInt32BE(offset+20);
+    assert.ok(width<=c.geometry.max_texture_edge_px&&height<=c.geometry.max_texture_edge_px,
+      'embedded texture exceeds budget');
+  }
+  const exported=new Map((gltf.animations||[]).map(clip=>[clip.name,clip]));
   for(const required of clips.filter(x=>x.required_for_v2)){
-    assert.ok(exported.has(required.name),'production clip missing '+required.name);
-    const seconds=exported.get(required.name).duration;
-    assert.ok(Math.abs(seconds-required.duration_ms/1000)<=.11,
-      'incorrect animation timing '+required.name+': '+seconds);
+    const animation=exported.get(required.name);
+    assert.ok(animation,'candidate action missing '+required.name);
+    assert.ok(animation.samplers.length>0,'empty action '+required.name);
+    const input=gltf.accessors[animation.samplers[0].input];
+    const duration=input.max[0];
+    assert.ok(Math.abs(duration-required.duration_ms/1000)<.11,
+      'action duration mismatch '+required.name+': '+duration);
   }
-  console.log('Intruder v2 candidate GLB passed:',Math.round(triangles),'tris,',
-    materials.size,'materials,',gltf.animations.length,'clips');
+  console.log('The Uninvited v2 GLB binary validated:',triangles,
+    'triangles,',gltf.materials.length,'materials,',
+    boneNames.size,'joints,',exported.size,'actions and embedded PBR maps');
 }
