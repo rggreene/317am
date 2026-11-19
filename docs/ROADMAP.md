@@ -39,3 +39,7 @@ A build must run in desktop Chrome/Edge, preserve win and lose paths, and avoid 
 ## Art revision workstream — in progress (vertical-slice branch)
 
 See [Art Revision Plan](ART_REVISION_PLAN.md), [Art Acceptance Checklist](ART_ACCEPTANCE_CHECKLIST.md) and the [asset manifest](../assets/asset-manifest.json). The next gates are reusable GLB import/fallback, hero living-room furniture, bedroom/entry, intruder rig and first-person hands, then integrated art/performance review. **In progress:** six furniture GLBs and their guarded import path are implemented and under visual review; authored character and first-person hand GLBs are still pending.
+
+## Character-focused production: The Uninvited v2 (specification complete)
+
+The dedicated [Art Bible](INTRUDER_V2_ART_BIBLE.md), [Production Checklist](INTRUDER_V2_PRODUCTION_CHECKLIST.md), [Blender/GLB Spec](INTRUDER_V2_BLENDER_GLB_SPEC.md) and [contract](../assets/characters/intruder-v2.contract.json) define the next character asset. Current status: **design/rig/animation contract delivered; v2 Blender model and GLB not yet created**. Complete first design/mesh/rig gates, then implement safe fallback and correct contact-time damage when integrating. Existing 12-bone procedural intruder remains active.

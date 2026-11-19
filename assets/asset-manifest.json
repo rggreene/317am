@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": "3:17 AM",
   "branch": "feature/vertical-slice-alpha",
-  "note": "Planning registry. None of these replacement files are shipped. Existing procedural GLBs stay active until individually reviewed.",
+  "note": "Mixed-status art registry: six procedural furniture GLBs are in_review and load in the game; Intruder v2 and other unbuilt candidates remain planned. A manifest path does not mean a file exists.",
   "units": "meters",
   "up_axis_runtime": "Y",
   "statuses": [
@@ -227,15 +227,21 @@
       "max_texture_edge_px": 2048,
       "target_dimensions_m": [
         0.73,
-        1.98,
-        0.48
+        1.9,
+        0.52
       ],
       "scene_origin_m": [
         0.28,
         0,
         -0.38
       ],
-      "integration": "src/actors/IntruderController.js"
+      "integration": "src/actors/IntruderController.js",
+      "contract": "assets/characters/intruder-v2.contract.json",
+      "art_bible": "docs/INTRUDER_V2_ART_BIBLE.md",
+      "production_checklist": "docs/INTRUDER_V2_PRODUCTION_CHECKLIST.md",
+      "technical_spec": "docs/INTRUDER_V2_BLENDER_GLB_SPEC.md",
+      "working_name": "The Uninvited",
+      "art_note": "Detailed v2 art/rig/animation contract exists; no authored GLB or Blender source has shipped."
     },
     {
       "id": "vm_player_arms_v01",

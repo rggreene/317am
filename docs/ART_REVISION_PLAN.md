@@ -1,5 +1,5 @@
 # 3:17 AM — Art Revision Plan
-**Status:** Approved direction / production plan, NOT implemented art
+**Status:** Art revision in progress; six furniture GLBs are in_review. Intruder v2 now has a detailed specification, but its final Blender/GLB model has not been built.
 **Target branch:** `feature/vertical-slice-alpha`
 **Source baseline:** `7238d778` (the playable 75-second survival alpha)
 **Owner:** Art and engineering, using the existing private repository
@@ -228,3 +228,7 @@ The main furniture is now a **six-piece procedural GLB set**, committed under `a
 6. Television
 
 All six entries are `in_review` in the asset manifest, meaning the runtime uses them with dimension-validated fallback but they are **not** certified Blender-authored final artwork. The browser smoke tests assert that each GLB replaced its fallback, and GitHub Actions regenerates and compares the committed binaries. Do not confuse passing the pipeline with a final art-director sign-off.
+
+### Intruder v2 production specialization
+
+Character art has its own [art bible](INTRUDER_V2_ART_BIBLE.md), [production checklist](INTRUDER_V2_PRODUCTION_CHECKLIST.md), [precise Blender/GLB spec](INTRUDER_V2_BLENDER_GLB_SPEC.md) and [machine-readable rig/animation contract](../assets/characters/intruder-v2.contract.json). These specialized v2 documents supersede earlier *provisional* character size/animation targets in this general plan. Candidate status remains `planned` until the actual skinned file and source exist.

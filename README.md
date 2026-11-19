@@ -15,6 +15,21 @@ The current art workstream is **a coordinated furniture + character art replacem
 
 **Current status:** six reproducibly generated furniture GLBs now load into the actual game, with scale validation and automatic procedural fallback. The intruder and player hands also have improved procedural art, but **no Blender-authored final models have shipped**. All six imported furniture assets remain `in_review`. Run `npm run check:assets` for the geometry tests or `npm run assets:hero-furniture` to regenerate the files.
 
+## The Uninvited v2 — complete character production package
+
+We have an **approved technical direction**, not yet a finished replacement model. The existing 12-bone intruder remains the active, playable fallback. The private repo contains a full production package:
+
+- [Intruder v2 Art Bible](docs/INTRUDER_V2_ART_BIBLE.md) — human silhouette, face, clothing, materials, character behavior and required reference views.
+- [Intruder v2 Production Checklist](docs/INTRUDER_V2_PRODUCTION_CHECKLIST.md) — eight measurable gates from design through Blender rigging, animation, export, gameplay integration and QA.
+- [Exact Blender/GLB Spec](docs/INTRUDER_V2_BLENDER_GLB_SPEC.md) — 37 named rig joints, bounds, 25K triangle cap, texture layouts, timing and adapter requirements.
+- [Machine-readable v2 contract](assets/characters/intruder-v2.contract.json) — the canonical names, durations and asset budgets.
+- [Blender source preflight](scripts/blender/validate_intruder_v2.py) — run from Blender once an actual source file is authored.
+- Run `npm run test:intruder-v2-contract` to validate specs now and a candidate GLB after it exists.
+
+**Design decision:** an ordinary, lean adult human intruder; worn charcoal work jacket and soft hood, visible human face, no supernatural eyes or theatrical armor.
+
+**Important remaining engineering issue:** the current game applies enemy damage when `attack` begins after the 0.82-second windup. The v2 spec requires **visible contact 0.18 seconds into the attack** before damage is evaluated. That timing change is planned, not implemented by these documents. No authored v2 GLB, `.blend`, new texture atlas or final animation set has been delivered.
+
 ## Play locally
 
 Requires Node.js 22 or a compatible recent LTS and a browser with WebGL 2.

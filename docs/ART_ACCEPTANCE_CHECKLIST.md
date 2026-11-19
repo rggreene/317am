@@ -1,7 +1,7 @@
 # Art Revision — Acceptance Checklist
 **Purpose:** use alongside [Art Revision Plan](ART_REVISION_PLAN.md) and `assets/asset-manifest.json`.
 
-The new files listed in the manifest are **planned**, not already shipped. Mark progress with the manifest's `status` values: `planned` → `modeling` → `exported` → `in_review` → `active`. Use `blocked` when a specific blocker must be resolved.
+Manifest entries have **mixed statuses**: six furniture GLBs are imported and **in_review**, while the fully authored Intruder v2 and many other assets are still **planned**. Mark progress with the manifest's `status` values: `planned` → `modeling` → `exported` → `in_review` → `active`. Use `blocked` when a specific blocker must be resolved.
 
 ## Gate A0 — export, runtime integration and fallback
 
