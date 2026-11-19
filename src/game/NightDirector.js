@@ -10,6 +10,7 @@ import {buildInteractionProps} from './buildInteractionProps.js';
 import {NightAudio} from '../audio/NightAudio.js';
 import {panFromCamera} from '../audio/AudioSpatial.js';
 import {beginIntruderStrike,advanceIntruderStrike} from './AttackContact.js';
+import {createDreadState,tickDread} from './DreadDirector.js';
 
 const ENTRY={x:2.73,z:2.12};
 const WALK_SPEED=.67;
@@ -31,6 +32,7 @@ export class NightDirector{
     this.doorForceTime=0;
     this.doorListenTime=0;
     this.doorListenTriggered=false;
+    this.dread=createDreadState();
     this.game.combat.getCollisionBlockers=()=>
       [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)];
     this.entryWarningIssued=false;
@@ -72,6 +74,7 @@ export class NightDirector{
     this.pendingNoise=null;
     this.active=false;
     this.audio.pause();
+    this.game.dreadLightFactor=1;
     this.showEnemy(true); // Keep actor visible for orbit-mode inspection.
     this.updatePresentation();
   }
@@ -365,6 +368,16 @@ export class NightDirector{
       this.game.combat.setFeedback(this.state.message);
     }
     if(this.state.phase==='playing'){
+      const player=this.game.view.camera.position;
+      const near=this.state.enemyEntered&&Math.hypot(
+        player.x-this.enemyPosition.x,player.z-this.enemyPosition.z)<2.3;
+      const cue=tickDread(this.dread,dt,this.state.elapsed,{
+        power:this.state.breakerOn,enemyNear:near});
+      if(cue){
+        this.state.message=cue.text;
+        this.audio.environmentCue?.(cue.kind);
+      }
+      this.game.dreadLightFactor=this.dread.dim;
       const combatStep=Math.min(dt,.05);
       this.resolveContact(combatStep);
       this.enemyTick(combatStep);
