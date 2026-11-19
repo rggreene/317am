@@ -236,9 +236,13 @@ export class NightDirector{
     }
 
     this.target?.setIntent(step.mode);
-    this.setActorPose('walk');
     const goal=step.goal;
-    if(!goal)return;
+    if(!goal){
+      this.setActorPose('idle');
+      this.path=[];
+      return;
+    }
+    this.setActorPose('walk');
     this.pathAge-=dt;
     if(this.pathAge<=0||this.path.length===0||
       Math.hypot(this.path[this.path.length-1].x-goal.x,
@@ -336,6 +340,7 @@ export class NightDirector{
       this.brain.mode==='windup'?'INCOMING STRIKE':
       this.brain.mode==='pursue'?'FOOTSTEPS APPROACHING':
       this.brain.mode==='search'?'FOOTSTEPS SEARCHING':
+      this.brain.mode==='investigate'?'INTRUDER INVESTIGATING':
       this.brain.mode==='recover'?'INTRUDER RECOVERING':'PRESENCE DETECTED');
     const hud=document.querySelector('#night-hud');
     if(hud){
