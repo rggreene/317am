@@ -85,3 +85,20 @@ assert.equal(tickThreat(createThreatBrain(),{...perception,blockers:[]}).mode,'p
 assert.equal(tickThreat(createThreatBrain(),{...perception,blockers:blocker}).mode,'search');
 assert.equal(tickThreat(createThreatBrain(),{...perception,blockers:blocker,moving:true,movementSpeed:2.8}).mode,'pursue',
   'loud movement can still be heard through an obstacle');
+
+// A discrete noise should draw the intruder to its source, not the player's
+// current location; obstacles attenuate the noise.
+const soundEnemy={x:0,z:0},soundPlayer={x:8,z:8};
+const noise={x:2,z:0,range:4};
+const listener=createThreatBrain();
+let soundStep=tickThreat(listener,{dt:.05,enemy:soundEnemy,player:soundPlayer,
+  housePower:false,soundEvent:noise,blockers:[]});
+assert.equal(soundStep.mode,'investigate');
+assert.deepEqual(soundStep.goal,{x:2,z:0});
+soundStep=tickThreat(listener,{dt:.05,enemy:soundEnemy,player:soundPlayer,
+  housePower:false,blockers:[]});
+assert.deepEqual(soundStep.goal,{x:2,z:0},'one-shot sound remains a remembered target');
+const muffled=createThreatBrain();
+assert.equal(tickThreat(muffled,{dt:.05,enemy:soundEnemy,player:soundPlayer,
+  housePower:false,soundEvent:{...noise,range:2.5},blockers:blocker}).mode,'search',
+  'a quiet sound beyond occluded hearing range must not alert the intruder');
