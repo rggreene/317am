@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createDoorState,doorBlockers,doorNear,openDoor,BEDROOM_DOOR} from '../src/game/DoorState.js';
+import {createDoorState,doorBlockers,doorNear,openDoor,BEDROOM_DOOR,doorApproach,doorBlocksRoute} from '../src/game/DoorState.js';
 import {canOccupy,APARTMENT_BLOCKERS} from '../src/game/CombatMath.js';
 import {findNavigationPath,navigateStep} from '../src/game/NavGrid.js';
 const door=createDoorState();
@@ -17,3 +17,13 @@ assert.ok(path.length>0,'door-open route must be traversable');
 const next=navigateStep(from,{x:-.5,z:-.8},1,.1,APARTMENT_BLOCKERS);
 assert.ok(next.x>from.x);
 console.log('Door state, open passage collision and dynamic navigation passed');
+
+const closed=createDoorState();
+assert.equal(doorBlocksRoute({x:-.7,z:-.8},{x:.7,z:-.8},closed),true);
+assert.equal(doorBlocksRoute({x:-.7,z:1},{x:.7,z:1},closed),false);
+assert.deepEqual(doorApproach({x:-.7,z:-.8}),{x:-.57,z:-.78});
+assert.deepEqual(doorApproach({x:.7,z:-.8}),{x:.43,z:-.78});
+assert.ok(canOccupy(-.57,-.78,.18,APARTMENT_BLOCKERS));
+assert.ok(canOccupy(.43,-.78,.18,APARTMENT_BLOCKERS));
+openDoor(closed);
+assert.equal(doorBlocksRoute({x:-.7,z:-.8},{x:.7,z:-.8},closed),false);
