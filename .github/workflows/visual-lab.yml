@@ -21,6 +21,10 @@ jobs:
         run: npm run check
       - name: Validate committed GLB assets
         run: npm run check:assets
+      - name: Verify reproducible furniture GLB exports
+        run: |
+          npm run assets:hero-furniture
+          git diff --exit-code -- assets/models/furniture/ assets/models/props/prop_television_v01.glb
       - name: Build static site
         run: npm run build
       - name: Browser smoke test (software WebGL)
