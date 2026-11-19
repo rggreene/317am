@@ -219,7 +219,6 @@ export class NightDirector{
     }
 
     const player=this.game.view.camera.position;
-    const keys=this.game.combat.keys;
     const movementSpeed=this.game.combat.actualSpeed??0;
     const stance=this.game.combat.analog?.stance??1;
     const moving=movementSpeed>.08;
@@ -373,7 +372,6 @@ export class NightDirector{
       this.audio.ambience(this.state.elapsed);
     }
 
-    const keys=this.game.combat.keys;
     const playerPace=this.game.combat.actualSpeed??0;
     if(playerPace>.10){
       this.audio.step(this.state.elapsed,false,1,0,playerPace>2.35,
@@ -412,6 +410,8 @@ export class NightDirector{
     set('#interaction-hint',focused?'[ E ]  '+focused.hint:
       'FACE AN OBJECT AND MOVE CLOSE TO INTERACT');
     set('#threat-indicator',!s.enemyEntered?'HOUSE QUIET':
+      this.doorListenTime>0?'FOOTSTEPS HAVE STOPPED':
+      this.doorForceTime>0?'WOOD UNDER PRESSURE':
       s.enemyStun>0?'INTRUDER STAGGERED':
       this.brain.mode==='windup'?'INCOMING STRIKE':
       this.brain.mode==='pursue'?'FOOTSTEPS APPROACHING':
@@ -423,7 +423,7 @@ export class NightDirector{
       hud.classList.toggle('night-ended',s.phase==='won'||s.phase==='lost');
       hud.classList.toggle('night-won',s.phase==='won');
       hud.classList.toggle('danger',s.enemyEntered&&
-        (this.brain.mode==='windup'||this.brain.mode==='pursue'));
+        (this.brain.mode==='windup'||this.brain.mode==='pursue'||this.doorForceTime>0));
     }
     const overlay=document.querySelector('#night-end');
     if(overlay)overlay.hidden=!(this.active&&(s.phase==='won'||s.phase==='lost'));
