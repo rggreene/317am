@@ -1,4 +1,4 @@
-import {canOccupy,moveWithCollision,PLAYER_BOUNDS,PLAYER_RADIUS} from './CombatMath.js';
+import {canOccupy,moveWithCollision,PLAYER_BOUNDS,PLAYER_RADIUS,APARTMENT_BLOCKERS} from './CombatMath.js';
 
 // Small deterministic A* grid; used for one actor, recalculated sparingly.
 const STEP=.24;
@@ -11,19 +11,19 @@ const nz=Math.floor((maxZ-minZ)/STEP)+1;
 const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
 const key=(x,z)=>z*nx+x;
 const point=(ix,iz)=>({x:minX+ix*STEP,z:minZ+iz*STEP});
-const valid=(ix,iz)=>ix>=0&&iz>=0&&ix<nx&&iz<nz&&
-  canOccupy(minX+ix*STEP,minZ+iz*STEP);
-function closest(location){
+const valid=(ix,iz,blockers)=>ix>=0&&iz>=0&&ix<nx&&iz<nz&&
+  canOccupy(minX+ix*STEP,minZ+iz*STEP,PLAYER_RADIUS,blockers);
+function closest(location,blockers){
   let best=null,dist=Infinity;
   for(let iz=0;iz<nz;iz++)for(let ix=0;ix<nx;ix++){
-    if(!valid(ix,iz))continue;
+    if(!valid(ix,iz,blockers))continue;
     const v=point(ix,iz),d=(v.x-location.x)**2+(v.z-location.z)**2;
     if(d<dist){dist=d;best={ix,iz};}
   }
   return best;
 }
-export function findNavigationPath(from,to){
-  const start=closest(from),end=closest(to);
+export function findNavigationPath(from,to,blockers=APARTMENT_BLOCKERS){
+  const start=closest(from,blockers),end=closest(to,blockers);
   if(!start||!end)return[];
   const first=key(start.ix,start.iz),goal=key(end.ix,end.iz);
   if(first===goal)return [point(end.ix,end.iz)];
@@ -44,9 +44,9 @@ export function findNavigationPath(from,to){
     const cx=current%nx,cz=Math.floor(current/nx);
     for(const [dx,dz] of dirs){
       const x=cx+dx,z=cz+dz;
-      if(!valid(x,z))continue;
+      if(!valid(x,z,blockers))continue;
       // Never cut diagonally through a corner, even if the destination is clear.
-      if(dx&&dz&&(!valid(cx+dx,cz)||!valid(cx,cz+dz)))continue;
+      if(dx&&dz&&(!valid(cx+dx,cz,blockers)||!valid(cx,cz+dz,blockers)))continue;
       const next=key(x,z),g=(cost.get(current)??Infinity)+(dx&&dz?1.4142:1);
       if(g>=(cost.get(next)??Infinity))continue;
       came.set(next,current);cost.set(next,g);score.set(next,g+heuristic(next));
@@ -63,9 +63,9 @@ export function findNavigationPath(from,to){
   result.reverse();
   return result;
 }
-export function navigateStep(position,goal,speed,dt){
+export function navigateStep(position,goal,speed,dt,blockers=APARTMENT_BLOCKERS){
   const vx=goal.x-position.x,vz=goal.z-position.z,dist=Math.hypot(vx,vz);
   if(dist<.001)return position;
   const step=Math.min(speed*dt,dist);
-  return moveWithCollision(position.x,position.z,vx/dist*step,vz/dist*step);
+  return moveWithCollision(position.x,position.z,vx/dist*step,vz/dist*step,PLAYER_RADIUS,blockers);
 }
