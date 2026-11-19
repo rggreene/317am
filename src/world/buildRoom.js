@@ -3,7 +3,7 @@ import {createIntruder} from '../actors/createIntruder.js';
 import {makeMaterials} from './materialLibrary.js';
 import {box,rounded,cylinder,sphere,plane} from './EnvironmentKit.js';
 import {HERO_LAYOUT} from './heroLayout.js';
-import {buildHeroSofa,buildHeroCoffeeTable,buildHeroBed,buildHeroDresser} from './HeroFurniture.js';
+import {buildHeroSofa,buildHeroCoffeeTable,buildHeroBed,buildHeroDresser,buildHeroRug,buildHeroMediaCenter} from './HeroFurniture.js';
 
 /**
  * Milestone 6: polished procedural environment testbed.
@@ -98,10 +98,7 @@ export function buildRoom(){
   // Hero art: decompressed cushions, fabric piping, textile throw.
   registerHero('room_sofa_2seat',buildHeroSofa(m));
 
-  // Rug with layered edge binding, kept slightly above floor to prevent z-fight.
-  r([2.02,.025,1.37],m.rug,[1.49,.038,.27],.14,{cast:false,name:'Woven lounge rug'});
-  b([1.83,.029,1.17],m.upholsteryShade,[1.49,.04,.27],{cast:false});
-  b([1.66,.032,1.03],m.rug,[1.49,.045,.27],{cast:false});
+  registerHero('room_rug',buildHeroRug(m));
 
   // Hero joinery: beveled hardwood, apron, angled legs, lower shelf.
   registerHero('room_coffee_table',buildHeroCoffeeTable(m));
@@ -114,16 +111,10 @@ export function buildRoom(){
   r([.24,.02,.16],m.paper,[1.48,.534,.30],.002,{cast:false});
   b([.13,.003,.008],m.ink,[1.48,.548,.31],{cast:false});
 
-  // TV / media console, low-sheen bezel, colored screen and storage.
-  r([1.64,.36,.45],m.wood,[1.60,.22,-2.17],.025,{name:'Media cabinet'});
-  for(const dx of [-.52,.52]){
-    b([.025,.22,.012],m.darkWood,[1.60+dx,.21,-1.94]);
-  }
-  b([.09,.42,.07],m.black,[1.60,.68,-2.16]);
-  r([1.36,.79,.09],m.black,[1.60,1.07,-2.17],.025,{name:'Television'});
-  b([1.25,.69,.011],m.screen,[1.60,1.07,-2.116],{cast:false});
-  // Small reflected patch on the glass, subdued enough not to overpower night.
-  b([.26,.028,.013],m.window,[1.95,1.24,-2.107],{cast:false});
+  // Coordinated cabinet and TV with functional power glow.
+  const media=buildHeroMediaCenter(m);
+  registerHero('room_media_console',media.cabinet);
+  registerHero('prop_television',media.tv);
 
   // Compact kitchenette remains navigationally compatible with previous build.
   r([.80,1.87,.75],m.chrome,[2.79,.935,-1.67],.025,{name:'Refrigerator'});

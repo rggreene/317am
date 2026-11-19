@@ -221,3 +221,69 @@ export function buildHeroDresser(m){
   g.userData.prototypeQuality='art-pass-1';
   return g;
 }
+
+export function buildHeroRug(m){
+  const g=group('room_rug',[1.49,0,.27]);
+  const edge=clothMat('#536167');
+  const backing=clothMat('#374b52');
+  refinedCushion(g,[2.02,.024,1.37],edge,[0,.037,0],
+    'Woven lounge rug',{radius:.014,compression:.002,wrinkle:.0005}).castShadow=false;
+  refinedCushion(g,[1.88,.018,1.24],m.rug,[0,.049,0],
+    'Central woven pile',{radius:.012,compression:.002,wrinkle:.0005}).castShadow=false;
+  for(const x of [-.92,.92]){
+    box(g,[.018,.013,1.20],backing,[x,.052,0],{cast:false,name:'Rug edge selvedge'});
+  }
+  // Short tasseled fringe on both short ends, batched in line segments.
+  const ends=[];
+  for(let i=0;i<=32;i++){
+    const x=-.92+i*(1.84/32);
+    for(const z of [-.685,.685]){
+      ends.push(x,.05,z,x+.003,.047,z+Math.sign(z)*.045);
+    }
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(ends,3));
+  const fringe=new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:'#93a0a4',transparent:true,opacity:.68}));
+  fringe.name='Woven fringe edge';g.add(fringe);
+  g.userData.prototypeQuality='art-pass-1';
+  return g;
+}
+
+export function buildHeroMediaCenter(m){
+  const cabinet=group('room_media_console',[1.60,0,-2.17]);
+  const mediumWood=m.wood,dark=m.darkWood;
+  for(const x of [-.71,.71])for(const z of [-.175,.175]){
+    taperedLeg(cabinet,[x,z],.08,.16,dark);
+  }
+  rounded(cabinet,[1.64,.31,.45],dark,[0,.26,0],.024,{name:'Media cabinet'});
+  rounded(cabinet,[1.68,.045,.48],mediumWood,[0,.425,0],.018,{name:'Media cabinet top slab'});
+  for(const x of [-.52,0,.52]){
+    const front=rounded(cabinet,[.46,.24,.018],mediumWood,[x,.266,.233],.012,
+      {name:'Media cabinet sliding drawer'});
+    front.rotation.y=x*.011;
+    box(cabinet,[.18,.010,.010],m.brass,[x,.255,.247],{cast:false,name:'Brass drawer handle'});
+  }
+  for(const x of [-.735,.735]){
+    box(cabinet,[.014,.23,.013],m.edge,[x,.26,.238],{cast:false,name:'Cabinet side reveal'});
+  }
+  // Short cable slipping out behind the cabinet.
+  seam(cabinet,[[.2,.18,-.21],[.20,.10,-.255],[.15,.06,-.25]],
+    m.black,.007,'Loose TV cable',12);
+
+  const tv=group('prop_television',[1.60,1.07,-2.17]);
+  rounded(tv,[1.36,.79,.094],m.black,[0,0,0],.024,{name:'Television'});
+  rounded(tv,[1.26,.69,.017],m.screen,[0,.008,.052],.012,{name:'Television active screen'});
+  // The darker glass side and a small asymmetrical reflected stripe help
+  // the screen feel like a real pane, not a uniformly bright emissive panel.
+  box(tv,[.33,.012,.018],m.window,[.35,.21,.064],
+    {cast:false,name:'TV glass low-intensity reflection'});
+  rounded(tv,[.15,.24,.09],dark,[0,-.48,-.014],.014,{name:'TV support post'});
+  rounded(tv,[.46,.02,.20],m.black,[0,-.61,0],.01,{name:'TV weighted foot'});
+  for(let i=0;i<16;i++){
+    box(tv,[.038,.003,.002],dark,[-.49+i*.065,-.358,.059],
+      {cast:false,name:'Television speaker grille'});
+  }
+  tv.userData.prototypeQuality='art-pass-1';
+  cabinet.userData.prototypeQuality='art-pass-1';
+  return {cabinet,tv};
+}

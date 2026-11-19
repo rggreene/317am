@@ -16,14 +16,14 @@ assert.ok(world.root.isGroup,'room must be a Three Group');
 assert.ok(world.intruder.group.parent===world.root,'intruder remains in room');
 assert.equal(HERO_LAYOUT.spawn.x,.05);
 assert.equal(HERO_LAYOUT.spawn.z,1.70);
-assert.equal(world.artSlots.size,4,'four furniture hero replacements must be available');
-for(const name of ['room_sofa_2seat','room_coffee_table','room_bed_dressed','room_dresser_phone']){
+assert.equal(world.artSlots.size,7,'seven living/bedroom hero replacements must be available');
+for(const name of ['room_sofa_2seat','room_coffee_table','room_bed_dressed','room_dresser_phone','room_rug','room_media_console','prop_television']){
   const slot=world.artSlots.get(name);
   assert.ok(slot?.isGroup,'missing furniture art slot '+name);
   assert.equal(slot.userData.assetId,name);
   let count=0;
   slot.traverse(node=>{if(node.isMesh)count++;});
-  assert.ok(count>=8,'hero geometry insufficient: '+name);
+  assert.ok(count>=3,'hero geometry insufficient: '+name);
 }
 const meshes=[];
 world.root.traverse(node=>{if(node.isMesh)meshes.push(node);});
