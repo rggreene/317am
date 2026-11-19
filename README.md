@@ -116,3 +116,7 @@ These are **procedurally authored/exported meshes**, not Blender sculpted/PBR-te
 ## Imported furniture PBR microdetail
 
 The reviewed glTF furniture receives subtle deterministic procedural normal and roughness maps in `src/assets/ArtMaterialFinish.js` (128×128 per material family), cached and shared across instances. These are interim fabric weave / wood-grain surface details, **not scanned or professionally textured materials**. Texture assignment occurs after scale validation and before an asset replaces its fallback.
+
+## Bedroom GLBs
+
+The bed and four-drawer phone dresser now also export as independent runtime glTF assets, generated through the same reproducible Node script. Both are `in_review` pending on-device visual review and retain fallback geometry. The emergency phone itself remains at its original accessible gameplay anchor, independent of the furniture asset.

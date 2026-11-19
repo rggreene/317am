@@ -1,4 +1,4 @@
-// Reproducible, asset-friendly GLB generator; outputs two committed furniture assets.
+// Reproducible, asset-friendly GLB generator; outputs four committed furniture assets.
 // Run: npm run assets:hero-furniture. Requires Node 22+ only.
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {dirname} from 'node:path';
@@ -212,7 +212,66 @@ function buildAssets(){
   table.tube(1,[[-.54,.52,-.28],[.54,.52,-.28]],.003,6);
   table.tube(1,[[-.54,.52,.28],[.54,.52,.28]],.003,6);
   const tb=outputGLB(table.groups,mats.table,{name:'Art Hardwood Coffee Table v01',description:'Beveled hardwood top, aprons, turned legs and brass ferrules'});
+
+  const bedMaterials=[
+    ["Bed frame in walnut",[.28,.16,.11,1],.76,0],
+    ["Cotton mattress and pillows",[.67,.71,.72,1],.99,0],
+    ["Dusty blue rumpled coverlet",[.40,.48,.53,1],.96,0],
+    ["Upholstered headboard channels",[.28,.33,.36,1],.96,0]
+  ];
+  const bed=meshBuilder(bedMaterials);
+  for(const x of [-.78,.78])for(const z of [-.89,.89])
+    bed.cylinder(0,[x,.115,z],.043,.052,.23,10);
+  bed.capsuleBox(0,[0,.31,0],[1.77,.27,2.12],22,12,.32);
+  bed.capsuleBox(0,[0,.53,-1.01],[1.86,.78,.16],20,12,.34);
+  bed.capsuleBox(1,[0,.486,.013],[1.70,.22,2.01],24,14,.37,{sag:.01});
+  bed.capsuleBox(2,[0,.675,.293],[1.64,.135,1.45],24,16,.36,{sag:.017,fold:.009});
+  for(const x of [-.42,.42]){
+    bed.capsuleBox(1,[x,.702,-.69],[.70,.158,.41],22,14,.36,{sag:.022});
+    bed.tube(1,[[x-.315,.725,-.88],[x+.315,.725,-.88],[x+.315,.715,-.50],[x-.315,.715,-.50],[x-.315,.725,-.88]],.0045,6);
+  }
+  for(let k=0;k<5;k++){
+    const x=-.72+k*.36;
+    bed.capsuleBox(3,[x,.585,-.917],[.305,.55,.065],16,12,.36,{sag:.01});
+  }
+  bed.capsuleBox(1,[0,.762,-.39],[1.50,.022,.12],16,8,.29);
+  for(let k=0;k<7;k++){
+    const z=-.25+k*.175;
+    const points=[];
+    for(let i=0;i<=12;i++){
+      const x=-.76+i*(1.52/12);
+      points.push([x,.752+.012*Math.sin(i*.73+k*1.28),z]);
+    }
+    bed.tube(2,points,.0025,5);
+  }
+  const bedAsset=outputGLB(bed.groups,bedMaterials,{name:'Art Dressed Bed v01',
+    description:'Padded headboard, soft mattress, independent pillows and quilt folds'});
+
+  const dresserMaterials=[
+    ["Walnut dresser case",[.34,.22,.15,1],.74,0],
+    ["Drawer endgrain fronts",[.45,.29,.18,1],.76,0],
+    ["Tarnished bronze pulls",[.42,.34,.23,1],.52,.54]
+  ];
+  const dresser=meshBuilder(dresserMaterials);
+  dresser.capsuleBox(0,[0,.59,0],[.66,1.11,.34],18,12,.22);
+  dresser.capsuleBox(1,[0,1.166,0],[.70,.034,.37],18,9,.30);
+  for(const x of [-.27,.27])for(const z of [-.135,.135])
+    dresser.box(0,[x,.05,z],[.057,.10,.06]);
+  for(let k=0;k<4;k++){
+    const y=.242+k*.252;
+    dresser.capsuleBox(1,[0,y,.178],[.595,.220,.019],18,10,.28);
+    dresser.box(0,[0,y+.104,.194],[.56,.006,.006]);
+    dresser.box(2,[0,y,.209],[.18,.012,.016]);
+    for(const x of [-.074,.074])
+      dresser.cylinder(2,[x,y,.209],.010,.010,.018,10);
+  }
+  for(const x of [-.307,.307])
+    dresser.box(0,[x,.61,.178],[.015,1.0,.017]);
+  const dresserAsset=outputGLB(dresser.groups,dresserMaterials,{name:'Art Four Drawer Dresser v01',
+    description:'Hardwood case, recessed drawer reveals and bronzed pulls'});
   return [
+    {id:'room_bed_dressed',path:'assets/models/furniture/room_bed_dressed_v01.glb',...bedAsset},
+    {id:'room_dresser_phone',path:'assets/models/furniture/room_dresser_phone_v01.glb',...dresserAsset},
     {id:'room_sofa_2seat',path:'assets/models/furniture/room_sofa_2seat_v01.glb',...sb},
     {id:'room_coffee_table',path:'assets/models/furniture/room_coffee_table_v01.glb',...tb}
   ];

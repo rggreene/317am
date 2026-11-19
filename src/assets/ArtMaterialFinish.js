@@ -67,7 +67,7 @@ export function finishFurnitureMaterials(scene){
     const updated=materials.map(material=>{
       if(!material?.isMeshStandardMaterial)return material;
       const name=(material.name||'').toLowerCase();
-      const type=/fabric|cushion|woven|piping|stitched/.test(name)?'fabric':
+      const type=/fabric|cushion|woven|piping|stitched|pillow|cotton|coverlet|upholster/.test(name)?'fabric':
         /wood|walnut|endgrain|hardwood/.test(name)?'wood':null;
       if(!type)return material;
       const maps=surfaceMaps(type),copy=material.clone();

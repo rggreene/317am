@@ -5,7 +5,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
 globalThis.self ??= globalThis;
 const manifest=JSON.parse(readFileSync(new URL('../assets/asset-manifest.json',import.meta.url),'utf8'));
-const required=['room_sofa_2seat','room_coffee_table'];
+const required=['room_sofa_2seat','room_coffee_table','room_bed_dressed','room_dresser_phone'];
 for(const id of required){
   const art=manifest.assets.find(x=>x.id===id);
   assert.ok(art,'missing hero asset '+id);

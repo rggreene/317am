@@ -141,7 +141,7 @@
       "id": "room_bed_dressed",
       "category": "furniture",
       "priority": "P0",
-      "status": "planned",
+      "status": "in_review",
       "model_glb": "assets/models/furniture/room_bed_dressed_v01.glb",
       "source_blend": "assets/source/blender/furniture/room_bed_dressed_v01.blend",
       "max_triangles": 10000,
@@ -157,13 +157,16 @@
         0,
         -1.36
       ],
-      "integration": "src/world/buildRoom.js bed and bedding"
+      "integration": "src/world/buildRoom.js bed and bedding",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB in visual review; not a Blender-authored final production model"
     },
     {
       "id": "room_dresser_phone",
       "category": "furniture",
       "priority": "P0",
-      "status": "planned",
+      "status": "in_review",
       "model_glb": "assets/models/furniture/room_dresser_phone_v01.glb",
       "source_blend": "assets/source/blender/furniture/room_dresser_phone_v01.blend",
       "max_triangles": 5500,
@@ -179,7 +182,10 @@
         0,
         1.46
       ],
-      "integration": "src/world/buildRoom.js phone dresser"
+      "integration": "src/world/buildRoom.js phone dresser",
+      "source_kind": "reproducible_procedural_glb",
+      "generator": "scripts/generate-hero-furniture.mjs",
+      "art_note": "Imported GLB in visual review; not a Blender-authored final production model"
     },
     {
       "id": "prop_entry_door",

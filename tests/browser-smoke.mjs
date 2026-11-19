@@ -32,6 +32,8 @@ try{
   const loadedHeroArt=await page.locator('#app').getAttribute('data-hero-glbs');
   assert.ok(loadedHeroArt?.includes('room_sofa_2seat'), 'sofa GLB did not replace fallback');
   assert.ok(loadedHeroArt?.includes('room_coffee_table'), 'table GLB did not replace fallback');
+  assert.ok(loadedHeroArt?.includes('room_bed_dressed'), 'bed GLB did not replace fallback');
+  assert.ok(loadedHeroArt?.includes('room_dresser_phone'), 'dresser GLB did not replace fallback');
   await page.screenshot({path:'artifacts/apartment-orbit.png'});
   // Inspect the bone-driven art directly as well as the full apartment.
   await page.keyboard.press('r');
