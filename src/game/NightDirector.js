@@ -28,6 +28,9 @@ export class NightDirector{
     this.actorState='idle';
     this.brain=createThreatBrain();
     this.interiorDoor=createDoorState();
+    this.doorForceTime=0;
+    this.game.combat.getCollisionBlockers=()=>
+      [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)];
     this.entryWarningIssued=false;
     this.pendingContact=null;
     this.lastStepAt=-100;
@@ -203,7 +206,7 @@ export class NightDirector{
   }
   enemyTick(dt){
     if(!this.state.enemyEntered||this.state.phase!=='playing')return;
-    if(this.state.enemyStun>0)return;
+    if(this.state.enemyStun>0){this.doorForceTime=0;return;}
 
     const player=this.game.view.camera.position;
     const keys=this.game.combat.keys;
@@ -221,6 +224,21 @@ export class NightDirector{
     });
     const distance=Math.hypot(player.x-this.enemyPosition.x,player.z-this.enemyPosition.z);
 
+    if(this.doorForceTime>0){
+      this.doorForceTime=Math.max(0,this.doorForceTime-dt);
+      this.target?.setIntent('windup',1-this.doorForceTime/1.15);
+      this.setActorPose('idle');
+      if(this.doorForceTime===0){
+        this.doorForceTime=1.15;
+        this.path=[];
+        this.pathAge=0;
+        this.state.message='WOOD CREAKS. SOMETHING LEANS AGAINST THE BEDROOM DOOR.';
+        this.audio.warning();
+        this.setActorPose('idle');
+        return;
+      }
+      return;
+    }
     if(step.telegraph){
       this.state.message='THE INTRUDER DRAWS BACK. MOVE!';
       this.game.combat.setFeedback('DODGE THE STRIKE');
@@ -274,7 +292,8 @@ export class NightDirector{
     if(this.pathAge<=0||this.path.length===0||
       Math.hypot(this.path[this.path.length-1].x-goal.x,
         this.path[this.path.length-1].z-goal.z)>.7){
-      this.path=findNavigationPath(this.enemyPosition,goal);
+      this.path=findNavigationPath(this.enemyPosition,goal,
+        [...APARTMENT_BLOCKERS,...doorBlockers(this.interiorDoor)]);
       this.pathAge=REPATH_INTERVAL;
     }
     if(this.path.length){
