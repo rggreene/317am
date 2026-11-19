@@ -3,6 +3,7 @@ import rigUrl from '../../assets/models/intruder_rig.glb?url';
 import {loadGLB} from '../assets/loadGLB.js';
 import {impactDirection,dampedSpring} from '../game/ImpactQuality.js';
 import {dressIntruderRig} from './IntruderArtPass.js';
+import {sculptIntruderSilhouette} from './IntruderSculpt.js';
 
 export const INTRUDER_CLIPS=Object.freeze(['idle','walk','attack','stagger']);
 
@@ -27,6 +28,9 @@ export async function createRiggedIntruder(){
     if(node.isSkinnedMesh)node.frustumCulled=false;
   });
   // Bone-following costume details; GLB clips and hit positions stay intact.
+  // Replace the mannequin-like skinned shell with detailed bone-following
+  // meshes; the old skinned mesh stays in memory as a reversible fallback.
+  const sculpt=sculptIntruderSilhouette(asset.scene);
   const art=dressIntruderRig(asset.scene);
   let active=null;
   let current='';
@@ -75,6 +79,7 @@ export async function createRiggedIntruder(){
   return {
     group,
     art,
+    sculpt,
     setClip,
     update(delta){
       asset.mixer.update(delta);

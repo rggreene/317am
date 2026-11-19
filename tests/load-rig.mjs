@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {dressIntruderRig} from '../src/actors/IntruderArtPass.js';
+import {sculptIntruderSilhouette} from '../src/actors/IntruderSculpt.js';
 
 globalThis.self ??= globalThis;
 const b=readFileSync(new URL('../assets/models/intruder_rig.glb',import.meta.url));
@@ -22,6 +23,10 @@ for(const clip of gltf.animations){
   assert.equal(action.getClip().name,clip.name);
   action.stop();
 }
+const sculpt=sculptIntruderSilhouette(gltf.scene);
+assert.ok(sculpt.newMeshes>=10,'new human silhouette needs several body components');
+assert.ok(sculpt.hiddenPrototypeSkins>=1,'old mannequin body should be hidden');
+assert.ok(characters.every(x=>x.visible===false),'mannequin shell still visible');
 const art=dressIntruderRig(gltf.scene);
 assert.ok(art.boneCount>=12,'rig dressing did not find expected bones');
 assert.ok(art.attachmentCount>=25,'intruder art pass lacks attached details');
